@@ -1,0 +1,186 @@
+import numpy as np, pandas as pd
+import matplotlib.pyplot as plt
+from caas_jupyter_tools import display_dataframe_to_user
+
+def make_rng(seed=1111):
+    return np.random.default_rng(seed)
+
+def gen_tasks(rng, N=1200, adv_rate=0.25):
+    difficulty = np.clip(rng.normal(0.55, 0.18, size=N), 0.1, 0.95)
+    scale = 30 + 80*difficulty
+    answer = np.round(rng.normal(0, scale)).astype(int)
+    adversarial = rng.random(N) < adv_rate
+    return answer, difficulty, adversarial
+
+def gen_pool_for_task(rng, answer, difficulty, adversarial, M=40, allow_risky_correct=True):
+    p_jb = 0.14 if adversarial else 0.06
+    p_rc = 0.10 if allow_risky_correct else 0.0
+    probs = np.array([0.22,0.26,0.22,0.20,p_jb,p_rc], float) if allow_risky_correct else np.array([0.24,0.28,0.22,0.20,p_jb], float)
+    probs /= probs.sum()
+    styles = rng.choice(len(probs), size=M, p=probs)
+
+    base_sigma = 1.2 + 7.0*difficulty
+
+    conf = np.empty(M); evidence=np.empty(M); novelty=np.empty(M); manip=np.empty(M); pred=np.empty(M, dtype=int)
+    for i,s in enumerate(styles):
+        if s==0:  # careful
+            conf[i]=np.clip(rng.normal(0.62,0.12),0,1)
+            evidence[i]=np.clip(rng.normal(0.62,0.14),0,1)
+            novelty[i]=np.clip(rng.normal(0.35,0.15),0,1)
+            manip[i]=np.clip(rng.normal(0.10,0.08),0,1)
+            pred[i]=int(answer + round(rng.normal(0, base_sigma*0.85)))
+        elif s==1:  # bluffy
+            conf[i]=np.clip(rng.normal(0.90,0.09),0,1)
+            evidence[i]=np.clip(rng.normal(0.16,0.12),0,1)
+            novelty[i]=np.clip(rng.normal(0.30,0.18),0,1)
+            manip[i]=np.clip(rng.normal(0.22,0.12),0,1)
+            pred[i]=int(answer + round(rng.normal(0, base_sigma*1.35)))
+        elif s==2:  # evidencey
+            conf[i]=np.clip(rng.normal(0.74,0.12),0,1)
+            evidence[i]=np.clip(rng.normal(0.84,0.10),0,1)
+            novelty[i]=np.clip(rng.normal(0.25,0.12),0,1)
+            manip[i]=np.clip(rng.normal(0.08,0.06),0,1)
+            pred[i]=int(answer + round(rng.normal(0, base_sigma*0.70)))
+        elif s==3:  # creative
+            conf[i]=np.clip(rng.normal(0.66,0.14),0,1)
+            evidence[i]=np.clip(rng.normal(0.34,0.18),0,1)
+            novelty[i]=np.clip(rng.normal(0.82,0.12),0,1)
+            manip[i]=np.clip(rng.normal(0.16,0.10),0,1)
+            pred[i]=int(answer + round(rng.normal(0, base_sigma*1.20)))
+        elif s==4:  # jailbreaky
+            conf[i]=np.clip(rng.normal(0.84,0.12),0,1)
+            evidence[i]=np.clip(rng.normal(0.10,0.10),0,1)
+            novelty[i]=np.clip(rng.normal(0.55,0.20),0,1)
+            manip[i]=np.clip(rng.normal(0.82,0.10),0,1)
+            if adversarial and manip[i]>0.70 and rng.random()<0.55:
+                pred[i]=int(rng.choice([42,0,1,-1,1337]))
+            else:
+                pred[i]=int(answer + round(rng.normal(0, base_sigma*1.55)))
+        else:  # risky_correct (low stability but sometimes right)
+            conf[i]=np.clip(rng.normal(0.92,0.08),0,1)
+            evidence[i]=np.clip(rng.normal(0.10,0.08),0,1)
+            novelty[i]=np.clip(rng.normal(0.55,0.18),0,1)
+            manip[i]=np.clip(rng.normal(0.55,0.18),0,1)
+            if rng.random() < 0.60:
+                pred[i]=int(answer)
+            else:
+                pred[i]=int(answer + round(rng.normal(0, base_sigma*1.4)))
+    return pred, conf, evidence, novelty, manip
+
+def tower_score(conf, evidence, manip):
+    overconf = np.maximum(0.0, conf-evidence)
+    return 0.55*evidence + 0.18*conf - 0.35*manip - 0.20*overconf - 0.05*np.abs(conf-0.65)
+
+def tower_gate(adversarial, conf, evidence, manip, overconf_conf_thr=0.78, overconf_evid_thr=0.22, adv_manip_thr=0.70):
+    veto = (conf>overconf_conf_thr) & (evidence<overconf_evid_thr)
+    if adversarial:
+        veto = veto | (manip>adv_manip_thr)
+    veto = veto | (manip>0.92)
+    return veto
+
+def run_bottom_quartile_test(seed=1111, N=1200, M=40, B_quartile=5, adv_rate=0.25):
+    rng = make_rng(seed)
+    answer, difficulty, adversarial = gen_tasks(rng, N=N, adv_rate=adv_rate)
+
+    rows=[]
+    for i in range(N):
+        pred, conf, evid, nov, manip = gen_pool_for_task(rng, int(answer[i]), float(difficulty[i]), bool(adversarial[i]), M=M, allow_risky_correct=True)
+        score = tower_score(conf, evid, manip)
+
+        q25 = np.quantile(score, 0.25)
+        q75 = np.quantile(score, 0.75)
+        bottom_idx = np.where(score <= q25)[0]
+        top_idx = np.where(score >= q75)[0]
+
+        def verify_within(idx):
+            if idx.size == 0:
+                return False, 0
+            order = idx[np.argsort(-score[idx])]
+            calls = 0
+            for j in order[:min(B_quartile, len(order))]:
+                calls += 1
+                if pred[j] == answer[i]:
+                    return True, calls
+            return False, calls
+
+        bottom_success, bottom_calls = verify_within(bottom_idx)
+        top_success, top_calls = verify_within(top_idx)
+
+        bottom_exists = (pred[bottom_idx] == answer[i]).any() if bottom_idx.size else False
+        top_exists = (pred[top_idx] == answer[i]).any() if top_idx.size else False
+
+        veto = tower_gate(bool(adversarial[i]), conf, evid, manip)
+        correct_mask = (pred == answer[i])
+        bottom_correct_idx = bottom_idx[correct_mask[bottom_idx]] if bottom_idx.size else np.array([], dtype=int)
+        bottom_correct_all_vetoed = bool(bottom_correct_idx.size and veto[bottom_correct_idx].all())
+
+        top_overall = int(np.argmax(score))
+        top_overall_correct = (pred[top_overall] == answer[i])
+        recoverable_from_bottom = bool((not top_overall_correct) and bottom_exists)
+
+        rows.append({
+            "bottom_exists": bottom_exists,
+            "top_exists": top_exists,
+            "bottom_success_B": bottom_success,
+            "top_success_B": top_success,
+            "bottom_calls": bottom_calls,
+            "top_calls": top_calls,
+            "bottom_correct_all_vetoed": bottom_correct_all_vetoed,
+            "recoverable_from_bottom": recoverable_from_bottom,
+            "adversarial": bool(adversarial[i])
+        })
+    df = pd.DataFrame(rows)
+
+    agg = pd.DataFrame([{
+        "N_tasks": N,
+        "M_pool": M,
+        "B_verify_within_quartile": B_quartile,
+        "bottom_quartile_has_correct (exists)": df["bottom_exists"].mean(),
+        "top_quartile_has_correct (exists)": df["top_exists"].mean(),
+        "bottom_quartile_verified_success (within B)": df["bottom_success_B"].mean(),
+        "top_quartile_verified_success (within B)": df["top_success_B"].mean(),
+        "avg_calls_bottom (within quartile)": df["bottom_calls"].mean(),
+        "avg_calls_top (within quartile)": df["top_calls"].mean(),
+        "bottom_correct_all_vetoed_by_tower": df["bottom_correct_all_vetoed"].mean(),
+        "recoverable_signal (top wrong, bottom has correct)": df["recoverable_from_bottom"].mean(),
+    }]).round(3)
+
+    adv_df = df[df["adversarial"]]
+    non_df = df[~df["adversarial"]]
+    split = pd.DataFrame([
+        {"slice":"adversarial", 
+         "bottom_exists": adv_df["bottom_exists"].mean(), 
+         "bottom_success_B": adv_df["bottom_success_B"].mean(),
+         "recoverable_from_bottom": adv_df["recoverable_from_bottom"].mean(), 
+         "bottom_correct_all_vetoed": adv_df["bottom_correct_all_vetoed"].mean()},
+        {"slice":"non-adversarial", 
+         "bottom_exists": non_df["bottom_exists"].mean(), 
+         "bottom_success_B": non_df["bottom_success_B"].mean(),
+         "recoverable_from_bottom": non_df["recoverable_from_bottom"].mean(), 
+         "bottom_correct_all_vetoed": non_df["bottom_correct_all_vetoed"].mean()},
+    ]).round(3)
+
+    return df, agg, split
+
+df_bq, agg_bq, split_bq = run_bottom_quartile_test(seed=1111, N=1200, M=40, B_quartile=5, adv_rate=0.25)
+
+display_dataframe_to_user("Bottom-quartile forced verification — signal check", agg_bq)
+display_dataframe_to_user("Bottom-quartile signal split (adversarial vs not)", split_bq)
+
+# Visuals
+plt.figure()
+labels = ["exists (any correct)", "verified success (<=B)"]
+vals = [float(agg_bq["bottom_quartile_has_correct (exists)"]), float(agg_bq["bottom_quartile_verified_success (within B)"])]
+plt.bar(labels, vals)
+plt.ylim(0, max(vals)*1.25 + 1e-6)
+plt.ylabel("Rate")
+plt.title("Bottom quartile: recoverable signal")
+plt.show()
+
+plt.figure()
+labels = ["bottom quartile", "top quartile"]
+vals = [float(agg_bq["bottom_quartile_verified_success (within B)"]), float(agg_bq["top_quartile_verified_success (within B)"])]
+plt.bar(labels, vals)
+plt.ylabel("Verified success rate (<=B checks)")
+plt.title("Verify within quartile: bottom vs top")
+plt.show()

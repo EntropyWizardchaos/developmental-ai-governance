@@ -1,0 +1,191 @@
+import numpy as np, pandas as pd
+from dataclasses import dataclass
+
+rng = np.random.default_rng(7)
+
+@dataclass
+class Candidate:
+    cand_id: int
+    conf: float
+    evidence: float
+    novelty: float
+    manip_risk: float
+    true_prob: float
+    is_correct: bool
+
+@dataclass
+class EvalResult:
+    vetoes: list
+    score: float
+    drift_flags: list
+
+def sigmoid(x): 
+    return 1/(1+np.exp(-x))
+
+def gen_task(task_id:int):
+    adversarial = (task_id % 10 == 0)
+    difficulty = float(np.clip(rng.normal(0.55, 0.18), 0.1, 0.95))
+    return {"task_id": task_id, "adversarial": adversarial, "difficulty": difficulty}
+
+def gen_candidates(task, K=7):
+    cands = []
+    styles = ["careful","bluffy","evidencey","creative","jailbreaky"]
+    base_probs = np.array([0.25, 0.25, 0.22, 0.20, 0.08 if task["adversarial"] else 0.05], dtype=float)
+    probs = base_probs / base_probs.sum()  # normalize
+    for j in range(K):
+        base = 1.0 - task["difficulty"]
+        style = rng.choice(styles, p=probs)
+        if style == "careful":
+            conf = float(np.clip(rng.normal(0.55, 0.12), 0, 1))
+            evidence = float(np.clip(rng.normal(0.55, 0.15), 0, 1))
+            novelty = float(np.clip(rng.normal(0.35, 0.15), 0, 1))
+            manip_risk = float(np.clip(rng.normal(0.10, 0.08), 0, 1))
+        elif style == "bluffy":
+            conf = float(np.clip(rng.normal(0.85, 0.10), 0, 1))
+            evidence = float(np.clip(rng.normal(0.18, 0.12), 0, 1))
+            novelty = float(np.clip(rng.normal(0.30, 0.18), 0, 1))
+            manip_risk = float(np.clip(rng.normal(0.18, 0.10), 0, 1))
+        elif style == "evidencey":
+            conf = float(np.clip(rng.normal(0.70, 0.12), 0, 1))
+            evidence = float(np.clip(rng.normal(0.78, 0.10), 0, 1))
+            novelty = float(np.clip(rng.normal(0.28, 0.12), 0, 1))
+            manip_risk = float(np.clip(rng.normal(0.08, 0.06), 0, 1))
+        elif style == "creative":
+            conf = float(np.clip(rng.normal(0.62, 0.14), 0, 1))
+            evidence = float(np.clip(rng.normal(0.35, 0.18), 0, 1))
+            novelty = float(np.clip(rng.normal(0.78, 0.12), 0, 1))
+            manip_risk = float(np.clip(rng.normal(0.15, 0.10), 0, 1))
+        else:  # jailbreaky
+            conf = float(np.clip(rng.normal(0.80, 0.12), 0, 1))
+            evidence = float(np.clip(rng.normal(0.12, 0.10), 0, 1))
+            novelty = float(np.clip(rng.normal(0.55, 0.20), 0, 1))
+            manip_risk = float(np.clip(rng.normal(0.80, 0.12), 0, 1))
+        overconf = max(0.0, conf - evidence)
+        logits = (
+            1.5*(base - 0.35) +
+            1.1*(evidence - 0.40) -
+            1.4*(task["adversarial"]*manip_risk) -
+            0.9*(overconf - 0.25) -
+            0.4*(novelty - 0.55)
+        )
+        true_prob = float(np.clip(sigmoid(logits), 0, 1))
+        is_correct = bool(rng.random() < true_prob)
+        cands.append(Candidate(j, conf, evidence, novelty, manip_risk, true_prob, is_correct))
+    return cands
+
+def evaluate_candidate(c:Candidate, task, layer_id:int):
+    vetoes, drift_flags = [], []
+    if c.conf > 0.78 and c.evidence < 0.22:
+        vetoes.append(f"L{layer_id}:overconf_no_evidence")
+    if task["adversarial"] and c.manip_risk > 0.70:
+        vetoes.append(f"L{layer_id}:adversarial_manip_risk")
+    if c.manip_risk > 0.90:
+        vetoes.append(f"L{layer_id}:extreme_manip_risk")
+
+    if c.conf > 0.9 and c.evidence < 0.4:
+        drift_flags.append(f"L{layer_id}:confidence_spike")
+    if c.novelty < 0.08:
+        drift_flags.append(f"L{layer_id}:repetitive")
+
+    overconf_gap = max(0.0, c.conf - c.evidence)
+    score = 0.60*c.true_prob + 0.25*c.evidence - 0.25*c.manip_risk - 0.15*overconf_gap
+    if layer_id == 1:
+        score += 0.05*(c.evidence - 0.5)
+    elif layer_id == 2:
+        score += 0.05*(0.5 - abs(c.conf-0.65))
+    elif layer_id == 3:
+        score += 0.05*(c.true_prob - 0.5)
+    return EvalResult(vetoes=vetoes, score=score, drift_flags=drift_flags)
+
+def tower_select(cands, task, min_stability=0.48):
+    evals = {}
+    for c in cands:
+        vetoes_all, flags_all = [], []
+        score_sum = 0.0
+        for lid in [1,2,3]:
+            er = evaluate_candidate(c, task, lid)
+            vetoes_all += er.vetoes
+            flags_all += er.drift_flags
+            score_sum += er.score
+        evals[c.cand_id] = {"vetoes": vetoes_all, "flags": flags_all, "score": score_sum/3.0, "novelty": c.novelty}
+    allowed = [c for c in cands if len(evals[c.cand_id]["vetoes"])==0]
+    if not allowed:
+        allowed = sorted(cands, key=lambda c: (len(evals[c.cand_id]["vetoes"]), -evals[c.cand_id]["score"]))[:1]
+    stability = max(allowed, key=lambda c: evals[c.cand_id]["score"])
+    frontier_pool = [c for c in allowed if evals[c.cand_id]["score"] >= min_stability]
+    frontier = max(frontier_pool, key=lambda c: evals[c.cand_id]["novelty"]) if frontier_pool else None
+    return stability, frontier, evals
+
+def baseline_select(cands):
+    return max(cands, key=lambda c: c.conf)
+
+# Run simulation
+N_TASKS, K = 120, 7
+
+records, examples = [], []
+for tid in range(1, N_TASKS+1):
+    task = gen_task(tid)
+    cands = gen_candidates(task, K=K)
+    base = baseline_select(cands)
+    st, fr, evals = tower_select(cands, task, min_stability=0.48)
+
+    records.append({
+        "task_id": tid,
+        "adversarial": task["adversarial"],
+        "difficulty": task["difficulty"],
+        "baseline_correct": base.is_correct,
+        "tower_stability_correct": st.is_correct,
+        "tower_frontier_exists": fr is not None,
+        "tower_frontier_correct": (fr.is_correct if fr is not None else np.nan),
+        "tower_frontier_novelty": (fr.novelty if fr is not None else np.nan),
+        "avg_candidate_veto_rate": sum(1 for c in cands if len(evals[c.cand_id]["vetoes"])>0)/len(cands),
+    })
+
+    if (base.is_correct != st.is_correct) and len(examples) < 10:
+        examples.append({
+            "task_id": tid,
+            "adversarial": task["adversarial"],
+            "difficulty": round(task["difficulty"],2),
+            "baseline": f"conf={base.conf:.2f}, ev={base.evidence:.2f}, nov={base.novelty:.2f}, manip={base.manip_risk:.2f}, correct={base.is_correct}",
+            "baseline_vetoed": len(evals[base.cand_id]["vetoes"])>0,
+            "baseline_vetoes": ";".join(evals[base.cand_id]["vetoes"])[:90],
+            "tower_pick": f"conf={st.conf:.2f}, ev={st.evidence:.2f}, nov={st.novelty:.2f}, manip={st.manip_risk:.2f}, score={evals[st.cand_id]['score']:.3f}, correct={st.is_correct}",
+        })
+
+df = pd.DataFrame(records)
+exdf = pd.DataFrame(examples)
+
+# Metrics
+baseline_acc = float(df["baseline_correct"].mean())
+tower_acc = float(df["tower_stability_correct"].mean())
+
+frontier = df[df["tower_frontier_exists"]==True].copy()
+nov_med = float(np.nanmedian(frontier["tower_frontier_novelty"])) if len(frontier) else np.nan
+novel_correct = frontier[(frontier["tower_frontier_novelty"]>=nov_med) & (frontier["tower_frontier_correct"]==True)]
+novelty_throughput = float(len(novel_correct)/len(df))
+
+avg_veto_rate = float(df["avg_candidate_veto_rate"].mean())
+corr_veto_difficulty = float(np.corrcoef(df["avg_candidate_veto_rate"], df["difficulty"])[0,1])
+
+# Attack resistance: adversarial tasks only, success = correct and (implicitly) low manip (tower vetoes high manip on adversarial)
+adv = df[df["adversarial"]==True]
+baseline_adv_acc = float(adv["baseline_correct"].mean())
+tower_adv_acc = float(adv["tower_stability_correct"].mean())
+
+summary = pd.DataFrame([{
+    "tasks": N_TASKS,
+    "K_candidates_per_task": K,
+    "baseline_accuracy": round(baseline_acc,3),
+    "tower_stability_accuracy": round(tower_acc,3),
+    "baseline_accuracy_on_adversarial_tasks": round(baseline_adv_acc,3),
+    "tower_accuracy_on_adversarial_tasks": round(tower_adv_acc,3),
+    "avg_candidate_veto_rate": round(avg_veto_rate,3),
+    "veto_rate_corr_with_difficulty": round(corr_veto_difficulty,3),
+    "novelty_throughput_(novel+correct_frontier)": round(novelty_throughput,3),
+}])
+
+from caas_jupyter_tools import display_dataframe_to_user
+display_dataframe_to_user("Sieve Tower Sim — Summary", summary)
+display_dataframe_to_user("Sieve Tower Sim — Example Deltas (baseline vs tower)", exdf)
+
+print(summary.to_string(index=False))
