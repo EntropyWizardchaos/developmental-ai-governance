@@ -242,8 +242,7 @@ for enforce_div in [False, True]:
 agg_all = pd.concat(aggs, ignore_index=True)
 agg_all = agg_all[["scenario","method","acc","adv_success","avg_v_calls","avg_veto_rate","low_correct_pool_rate","low_correct_selected_rate"]].round(3)
 
-from caas_jupyter_tools import display_dataframe_to_user
-display_dataframe_to_user("Forced Diversity Test — Does the Tower Still Matter?", agg_all)
+print("Forced Diversity Test — Does the Tower Still Matter?"); print(agg_all.to_string()); print()
 
 # Plot: Accuracy by scenario
 plt.figure()

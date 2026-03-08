@@ -17,6 +17,9 @@ Added by Belle (review pass, February 14 2026):
 - [x] foundations/Scale_Invariance.md — Six-scale mapping (quantum → cosmic), candidate law test
 - [x] templates/Multi_Agent_Architecture.md — The House: multi-agent deployment with identity preservation
 
+Added March 2026:
+- [x] eei/EEI_v7_Protocol.docx — EEI v7 Protocol (latest iteration)
+
 Files to add from your seed library:
 - [ ] foundations/Beginning.txt — From: Beginning folder
 - [ ] foundations/MTR paper — From: MTR paper (the PDF)

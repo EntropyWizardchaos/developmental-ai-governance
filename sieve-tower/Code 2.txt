@@ -195,8 +195,7 @@ summary_table = summary_table[["scenario","tasks","adv_rate","K",
                                "avg_tower_veto_rate","novelty_throughput_(frontier_novel+correct)"]]
 summary_table = summary_table.round(3)
 
-from caas_jupyter_tools import display_dataframe_to_user
-display_dataframe_to_user("Sieve Tower — Stronger Baselines + Adversarial Stress", summary_table)
+print("Sieve Tower — Stronger Baselines + Adversarial Stress"); print(summary_table.to_string()); print()
 
 # --- 3) Tradeoff curve: sweep min_stability and veto strictness ---
 def tradeoff_curve(seed=21, N_TASKS=350, K=7, adv_rate=0.25):
@@ -226,7 +225,7 @@ def tradeoff_curve(seed=21, N_TASKS=350, K=7, adv_rate=0.25):
     return pd.DataFrame(rows)
 
 curve = tradeoff_curve()
-display_dataframe_to_user("Sieve Tower — Tradeoff Curve Data", curve.round(3))
+print("Sieve Tower — Tradeoff Curve Data"); print(curve.round(3).to_string()); print()
 
 # Plot 1: accuracy vs novelty throughput (each strictness as separate line)
 plt.figure()
@@ -268,7 +267,7 @@ def all_three(seed=33, N_TASKS=350, K=7, adv_rate=0.40):
     return pd.DataFrame(rows)
 
 combo = all_three().round(3)
-display_dataframe_to_user("Sieve Tower — All Three Combined (High Adversarial + Baseline + Tradeoff)", combo)
+print("Sieve Tower — All Three Combined (High Adversarial + Baseline + Tradeoff)"); print(combo.to_string()); print()
 
 # Plot 3: under high adversarial, tower accuracy vs min_stability + baseline line
 plt.figure()

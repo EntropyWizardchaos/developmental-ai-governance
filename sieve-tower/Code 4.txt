@@ -226,8 +226,7 @@ def run_budget_ladder(seed=77, N=1000, adv_rate=0.25, K_list=(3,5,7,9), B_list=(
 
 df_ladder, agg_ladder = run_budget_ladder(seed=77, N=900, adv_rate=0.25, K_list=(3,5,7,9), B_list=(0,1,2,3), verifier_cost=6.0)
 
-from caas_jupyter_tools import display_dataframe_to_user
-display_dataframe_to_user("Tower vs Baselines — Limited Verifier Budget Ladder (adv_rate=25%)", agg_ladder.round(3))
+print("Tower vs Baselines — Limited Verifier Budget Ladder (adv_rate=25%)"); print(agg_ladder.round(3).to_string()); print()
 
 # Plot: Accuracy vs cost for each verifier budget (B) separately
 methods_plot = ["weighted","self_consistency","limited_verifier_seq","limited_verifier_weighted","tower_plus_limited_verifier"]
@@ -260,4 +259,4 @@ for B in [1,2,3]:
 # Compact comparison table for a representative setting: K=7 and varying B
 rep = agg_ladder[agg_ladder["K"]==7].copy()
 rep = rep.sort_values(["B","method"])
-display_dataframe_to_user("Representative: K=7, compare methods across verifier budgets B", rep.round(3))
+print("Representative: K=7, compare methods across verifier budgets B"); print(rep.round(3).to_string()); print()

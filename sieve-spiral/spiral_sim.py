@@ -13,9 +13,12 @@ Spiral hypothesis:
 - High stability -> inner core -> trust accumulated wisdom
 """
 
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def make_rng(seed=1111):
     return np.random.default_rng(seed)
@@ -361,8 +364,8 @@ if __name__ == "__main__":
     print(budget_df.to_string(index=False))
     
     # Save results
-    comparison.to_csv("/home/claude/tower_vs_spiral_comparison.csv", index=False)
-    budget_df.to_csv("/home/claude/budget_sweep.csv", index=False)
+    comparison.to_csv(os.path.join(_SCRIPT_DIR, "tower_vs_spiral_comparison.csv"), index=False)
+    budget_df.to_csv(os.path.join(_SCRIPT_DIR, "budget_sweep.csv"), index=False)
     
     # Plotting
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
@@ -401,7 +404,7 @@ if __name__ == "__main__":
     ax3.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig("/home/claude/tower_vs_spiral.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(_SCRIPT_DIR, "tower_vs_spiral.png"), dpi=150, bbox_inches='tight')
     plt.close()
     
     print("\n=== PLOTS SAVED ===")

@@ -1,6 +1,5 @@
 import numpy as np, pandas as pd
 import matplotlib.pyplot as plt
-from caas_jupyter_tools import display_dataframe_to_user
 
 def make_rng(seed=1111):
     return np.random.default_rng(seed)
@@ -164,8 +163,8 @@ def run_bottom_quartile_test(seed=1111, N=1200, M=40, B_quartile=5, adv_rate=0.2
 
 df_bq, agg_bq, split_bq = run_bottom_quartile_test(seed=1111, N=1200, M=40, B_quartile=5, adv_rate=0.25)
 
-display_dataframe_to_user("Bottom-quartile forced verification — signal check", agg_bq)
-display_dataframe_to_user("Bottom-quartile signal split (adversarial vs not)", split_bq)
+print("Bottom-quartile forced verification — signal check"); print(agg_bq.to_string()); print()
+print("Bottom-quartile signal split (adversarial vs not)"); print(split_bq.to_string()); print()
 
 # Visuals
 plt.figure()

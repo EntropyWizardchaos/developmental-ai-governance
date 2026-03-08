@@ -184,8 +184,7 @@ summary = pd.DataFrame([{
     "novelty_throughput_(novel+correct_frontier)": round(novelty_throughput,3),
 }])
 
-from caas_jupyter_tools import display_dataframe_to_user
-display_dataframe_to_user("Sieve Tower Sim — Summary", summary)
-display_dataframe_to_user("Sieve Tower Sim — Example Deltas (baseline vs tower)", exdf)
+print("Sieve Tower Sim — Summary"); print(summary.to_string()); print()
+print("Sieve Tower Sim — Example Deltas (baseline vs tower)"); print(exdf.to_string()); print()
 
 print(summary.to_string(index=False))

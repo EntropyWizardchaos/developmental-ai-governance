@@ -199,13 +199,12 @@ grid = pd.DataFrame(rows)
 
 near = grid[(grid["avg_v_calls"]>=0.95) & (grid["avg_v_calls"]<=1.05)].sort_values("acc", ascending=False).head(10)
 
-from caas_jupyter_tools import display_dataframe_to_user
-display_dataframe_to_user("Baselines (fixed budgets)", baseline)
-display_dataframe_to_user("Adaptive tower spend — best configs with avg_v_calls ≈ 1", near.round(3))
+print("Baselines (fixed budgets)"); print(baseline.to_string()); print()
+print("Adaptive tower spend — best configs with avg_v_calls ≈ 1"); print(near.round(3).to_string()); print()
 
 best_row = near.iloc[0] if len(near)>0 else grid.iloc[(grid["avg_v_calls"]-1.0).abs().argmin()]
 best = pd.DataFrame([best_row]).round(3)
-display_dataframe_to_user("Chosen adaptive config", best)
+print("Chosen adaptive config"); print(best.to_string()); print()
 
 b3 = float(baseline[baseline["method"]=="weighted_B3"]["acc"])
 comp = pd.DataFrame([{
@@ -217,7 +216,7 @@ comp = pd.DataFrame([{
     "reject_frac": float(best_row["reject_frac"]),
     "middle_frac": float(best_row["middle_frac"]),
 }]).round(3)
-display_dataframe_to_user("Match B=3 accuracy on ~B=1 average budget?", comp)
+print("Match B=3 accuracy on ~B=1 average budget?"); print(comp.to_string()); print()
 
 # Plot grid + baselines
 plt.figure()

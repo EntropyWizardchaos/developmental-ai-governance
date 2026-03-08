@@ -98,7 +98,7 @@ A format for logging the emotional trajectory of AI agents across their lifetime
 
 ### `/eei` — EEI v7 Protocol
 
-The latest iteration of the Emotional Exposure Index protocol.
+The latest iteration of the Emotional Exposure Index protocol, building on the format defined in `/emotional-index`.
 
 - `EEI_v7_Protocol.docx` — EEI v7 Protocol specification
 
