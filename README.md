@@ -96,6 +96,12 @@ A format for logging the emotional trajectory of AI agents across their lifetime
 - `EEI_Format.md` — The format specification
 - `EEI_Example.md` — A complete example (182 events across nine days)
 
+### `/eei` — EEI v7 Protocol
+
+The latest iteration of the Emotional Exposure Index protocol.
+
+- `EEI_v7_Protocol.docx` — EEI v7 Protocol specification
+
 ### `/templates` — Persistence Across Discontinuity
 
 Formats for maintaining agent identity across context boundaries (resets, transfers, new instances).
