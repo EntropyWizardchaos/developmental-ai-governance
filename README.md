@@ -22,13 +22,13 @@ The architecture exists. The code runs. Timestamps and commit history document t
 
 ```bash
 # Clone the repo
-git clone https://github.com/[your-username]/the-garden.git
-cd the-garden
+git clone https://github.com/EntropyWizardchaos/Familiar-Framework.git
+cd Familiar-Framework
 
 # Run the Sieve Tower simulation (Python 3.x)
 pip install numpy pandas
 cd sieve-tower
-python "Code 1.txt"
+python 01_core_selection.py
 
 # Run the Spiral vs Tower comparison
 cd ../sieve-spiral
@@ -58,7 +58,7 @@ This repository proposes that the problem is not configuration. It is architectu
 The core governance framework. Agents live, generate outputs with evidence and uncertainty, log everything to an append-only ledger, and die at the end of a bounded lifespan. At death, their sealed ledger is distilled into an immutable sieve layer: hard vetoes, soft critics, drift detectors, and provenance metadata. The next agent is born into a tower one layer taller. Fresh mind, accumulated wisdom.
 
 - `Sieve_Tower.pdf` — Full paper
-- `Code_1.txt` through `Code_7.txt` — Working simulation (Python, requires `numpy`, `pandas`)
+- `01_core_selection.py` through `07_quartile_verification.py` — Working simulation (Python, requires `numpy`, `pandas`)
 
 **Key insight:** "Fast learners die. Their receipts remain."
 

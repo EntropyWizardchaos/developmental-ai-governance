@@ -7,7 +7,7 @@ The Garden (Familiar-Framework) is an open-source developmental governance archi
 ## Directory Structure
 
 - `/foundations` — Theoretical base: CMDx equation, scale invariance (quantum → cosmic), observers-as-architecture
-- `/sieve-tower` — Core governance: bounded lifespans, append-only ledgers, sieve layer distillation. Python simulations (Code 1-7.txt, requires numpy + pandas)
+- `/sieve-tower` — Core governance: bounded lifespans, append-only ledgers, sieve layer distillation. Python simulations (01-07_*.py, requires numpy + pandas)
 - `/sieve-spiral` — Spiral variant: routes candidates by stability score instead of binary accept/reject. spiral_sim.py (requires numpy + pandas + matplotlib)
 - `/developmental` — Staged maturation protocols: childhood → adolescence → adulthood → death
 - `/emotional-index` — EEI format specification for logging agent emotional trajectories
@@ -28,7 +28,7 @@ The Garden (Familiar-Framework) is an open-source developmental governance archi
 Requires Python 3.x with numpy, pandas, and matplotlib.
 
 ```bash
-cd sieve-tower && python "Code 1.txt"       # Basic sieve tower simulation
+cd sieve-tower && python 01_core_selection.py  # Basic sieve tower simulation
 cd sieve-spiral && python spiral_sim.py      # Tower vs spiral comparison
 ```
 
