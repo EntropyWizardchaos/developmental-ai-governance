@@ -22,8 +22,8 @@ The architecture exists. The code runs. Timestamps and commit history document t
 
 ```bash
 # Clone the repo
-git clone https://github.com/EntropyWizardchaos/Familiar-Framework.git
-cd Familiar-Framework
+git clone https://github.com/EntropyWizardchaos/developmental-ai-governance.git
+cd developmental-ai-governance
 
 # Run the Sieve Tower simulation (Python 3.x)
 pip install numpy pandas
