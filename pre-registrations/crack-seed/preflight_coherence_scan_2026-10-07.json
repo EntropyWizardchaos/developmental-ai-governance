@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-07",
+  "purpose": "Pre-flight coherence scan to identify Gate 1 target seed on pre-integration v37.3.1.",
+  "pre_integration_sha": "9b57fea26d26f5b7e5f64e20ef0943379ada5cb4ed011ee4b33976c239b66efa",
+  "criterion": {
+    "coherent_steps_threshold": 50
+  },
+  "seeds_scanned": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "results": [
+    {
+      "seed": 0,
+      "coherent_declared": false,
+      "max_coherent_steps": 0,
+      "burn_integral": 1167.1588508145,
+      "fingerprint_pickle": "C:\\Users\\14132\\iCloudDrive\\Seeds\\The Crack\\preflight_fingerprints_2026-10-07\\preflight_seed_0_hot_fingerprint.pkl"
+    },
+    {
+      "seed": 1,
+      "coherent_declared": false,
+      "max_coherent_steps": 0,
+      "burn_integral": 1017.8668175134,
+      "fingerprint_pickle": "C:\\Users\\14132\\iCloudDrive\\Seeds\\The Crack\\preflight_fingerprints_2026-10-07\\preflight_seed_1_hot_fingerprint.pkl"
+    },
+    {
+      "seed": 2,
+      "coherent_declared": false,
+      "max_coherent_steps": 0,
+      "burn_integral": 0.0,
+      "fingerprint_pickle": "C:\\Users\\14132\\iCloudDrive\\Seeds\\The Crack\\preflight_fingerprints_2026-10-07\\preflight_seed_2_hot_fingerprint.pkl"
+    },
+    {
+      "seed": 3,
+      "coherent_declared": false,
+      "max_coherent_steps": 0,
+      "burn_integral": 513.6220473755,
+      "fingerprint_pickle": "C:\\Users\\14132\\iCloudDrive\\Seeds\\The Crack\\preflight_fingerprints_2026-10-07\\preflight_seed_3_hot_fingerprint.pkl"
+    },
+    {
+      "seed": 4,
+      "coherent_declared": false,
+      "max_coherent_steps": 0,
+      "burn_integral": 124.5202883355,
+      "fingerprint_pickle": "C:\\Users\\14132\\iCloudDrive\\Seeds\\The Crack\\preflight_fingerprints_2026-10-07\\preflight_seed_4_hot_fingerprint.pkl"
+    }
+  ],
+  "coherent_seeds_in_scan": [],
+  "chosen_gate_seed": 20,
+  "fallback_triggered": true,
+  "fallback_note": "All of seeds 0-4 returned non-coherent in pre-flight scan. Falling back to D2-identified seed 20 per fifth-addendum pre-locked fallback discipline. Sixth addendum required to lock this change before Phase 0 gate run."
+}

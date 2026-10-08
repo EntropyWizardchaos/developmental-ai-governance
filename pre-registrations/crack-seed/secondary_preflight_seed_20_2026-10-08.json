@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "purpose": "Secondary pre-flight on seed 20 with current (canonical-channels) v37.3.1.",
+  "pre_integration_sha": "9b57fea26d26f5b7e5f64e20ef0943379ada5cb4ed011ee4b33976c239b66efa",
+  "criterion": {
+    "coherent_steps_threshold": 50
+  },
+  "seed_tested": 20,
+  "coherent_declared": true,
+  "max_coherent_steps": 2873,
+  "burn_integral": 1167.3661594356,
+  "fingerprint_pickle": "C:\\Users\\14132\\iCloudDrive\\Seeds\\The Crack\\preflight_fingerprints_2026-10-07\\preflight_seed_20_hot_fingerprint.pkl",
+  "decision": "PROCEED with seed 20 as Gate 1 target. Draft sixth addendum."
+}
