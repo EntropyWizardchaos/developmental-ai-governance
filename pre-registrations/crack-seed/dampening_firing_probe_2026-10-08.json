@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-08",
+  "purpose": "Measure D_caution dampening firing rate to interpret Gate 1 LEAK failure.",
+  "D_MAX": 50.0,
+  "seeds": [
+    20,
+    22,
+    33
+  ],
+  "n_steps_per_seed": 3000,
+  "results": [
+    {
+      "seed": 20,
+      "n_snapshots": 14500,
+      "max_D_eff": 4.937792,
+      "mean_D_eff": 3.692206,
+      "n_coherent_snapshot_steps": 5746,
+      "coherent_rate": 0.3963,
+      "dampening_firing_count_effective": 0,
+      "dampening_firing_rate_effective": 0.0,
+      "dampening_firing_count_canonical_only": 0,
+      "dampening_firing_rate_canonical_only": 0.0
+    },
+    {
+      "seed": 22,
+      "n_snapshots": 14500,
+      "max_D_eff": 4.742766,
+      "mean_D_eff": 3.61428,
+      "n_coherent_snapshot_steps": 8060,
+      "coherent_rate": 0.5559,
+      "dampening_firing_count_effective": 0,
+      "dampening_firing_rate_effective": 0.0,
+      "dampening_firing_count_canonical_only": 0,
+      "dampening_firing_rate_canonical_only": 0.0
+    },
+    {
+      "seed": 33,
+      "n_snapshots": 14500,
+      "max_D_eff": 5.08083,
+      "mean_D_eff": 3.663812,
+      "n_coherent_snapshot_steps": 5760,
+      "coherent_rate": 0.3972,
+      "dampening_firing_count_effective": 0,
+      "dampening_firing_rate_effective": 0.0,
+      "dampening_firing_count_canonical_only": 0,
+      "dampening_firing_rate_canonical_only": 0.0
+    }
+  ],
+  "interpretation_rules": {
+    "high_firing_rate_threshold": 0.05,
+    "low_firing_rate_threshold": 0.01,
+    "high_action": "Leak too weak. Strengthen via seventh addendum, rerun Gate 1.",
+    "low_action": "D_caution behaviorally inert in this regime. Stage 1 finding. Route to Sal. State in addendum.",
+    "between_action": "Marginal regime. Investigate further before deciding."
+  }
+}

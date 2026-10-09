@@ -17,14 +17,21 @@ Full chain (first four addenda live in the household workspace):
 4. `stage_1_prereg_third_addendum_2026-10-04.md` — μ scope + memoir floor (not committed here)
 5. `stage_1_prereg_fourth_addendum_2026-10-04.md` — N=50 fresh seeds + path 2 secondary (not committed here)
 6. **`stage_1_prereg_fifth_addendum_2026-10-05.md`** ← this directory. Stage 2 four-arm design with both-ends-coherent stratification, LEAK_TEST_MODE positive control, Phase 5 ratification, external review attribution.
+7. **`stage_1_prereg_sixth_addendum_2026-10-08.md`** ← this directory. Gate 1 target seed lock (seed 20) after pre-flight fallback.
+8. **`stage_1_prereg_seventh_addendum_2026-10-08.md`** ← this directory. D_caution behavioral inertness finding; LEAK relocated D_caution → refusal_chance with activation counter + INVALID third state; per-channel behavioral activation audit as Phase 0.5 BLOCKER; ablation methodology for per-channel attribution.
 
 ## Contents
 
 - **`stage_1_prereg_fifth_addendum_2026-10-05.md`** — the governing pre-reg for Stage 2.
+- **`stage_1_prereg_sixth_addendum_2026-10-08.md`** — Gate 1 target seed lock.
+- **`stage_1_prereg_seventh_addendum_2026-10-08.md`** — D_caution inertness + LEAK relocation + per-channel audit + ablation methodology.
 - **`stage_2_yoked_design_2026-10-05.md`** — architecture design document; implementation reference matching the pre-reg.
-- **`pooled_sd_calibration_2026-10-05.json`** — source of the primary + secondary metric σ_pooled values cited in addendum §3 (burn_excess_integral σ=339.49 → threshold 101.85; terminal_C σ=0.0185 → threshold 0.00554). Computed from no_obs arm only (control arm), 50 seeds (100-149).
-- **`pop_mismatch_analysis_2026-10-05.json`** — source of the dose-tolerance empirical justification cited in addendum §4 (empirical pop-mismatch under cyclic k=25 shift = 0.00%, every seed produces identical per-step population curve).
-- **`matched_perturbation_calibration_locked_v2_n50_2026-10-04.json`** — source of the μ_c values cited in addendum §9 for the matched arm (burn_decay −0.00227, refusal −0.00507, D_caution −1.657; recovery_rate excluded per fourth addendum).
+- **`pooled_sd_calibration_2026-10-05.json`** — source of the primary + secondary metric σ_pooled values cited in fifth addendum §3 (burn_excess_integral σ=339.49 → threshold 101.85; terminal_C σ=0.0185 → threshold 0.00554). Computed from no_obs arm only (control arm), 50 seeds (100-149).
+- **`pop_mismatch_analysis_2026-10-05.json`** — source of the dose-tolerance empirical justification cited in fifth addendum §4 (empirical pop-mismatch under cyclic k=25 shift = 0.00%, every seed produces identical per-step population curve).
+- **`matched_perturbation_calibration_locked_v2_n50_2026-10-04.json`** — source of the μ_c values cited in fifth addendum §9 for the matched arm (burn_decay −0.00227, refusal −0.00507, D_caution −1.657; recovery_rate excluded per fourth addendum).
+- **`preflight_coherence_scan_2026-10-07.json`** — pre-flight on seeds 0-4 (0/5 coherent); fires fallback discipline cited in sixth addendum.
+- **`secondary_preflight_seed_20_2026-10-08.json`** — seed 20 coherence verification on current v37.3.1 (max_coherent_steps=2873); referenced by sixth addendum.
+- **`dampening_firing_probe_2026-10-08.json`** — probe measuring D_caution dampening firing rate across seeds {20, 22, 33}; 0/43,500 events; the finding driving the seventh addendum.
 
 ## External review attribution
 
