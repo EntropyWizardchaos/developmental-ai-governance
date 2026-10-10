@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-09",
+  "task": "Task C.1 preflight seeds 34, 37 on v37.4",
+  "results": {
+    "34": {
+      "elapsed_s": 67.4,
+      "coherence_declaration": true,
+      "hot_observer_never_formed": false,
+      "max_coherent_steps": 2875,
+      "per_agent_coherent_steps_sorted": [
+        2875,
+        2875,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_pop": 6,
+      "declaration_threshold": 50
+    },
+    "37": {
+      "elapsed_s": 68.8,
+      "coherence_declaration": true,
+      "hot_observer_never_formed": false,
+      "max_coherent_steps": 2877,
+      "per_agent_coherent_steps_sorted": [
+        2877,
+        2877,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_pop": 6,
+      "declaration_threshold": 50
+    }
+  },
+  "verdict": "BOTH_COHERENT_PROCEED_TASK_C"
+}

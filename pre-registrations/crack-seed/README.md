@@ -19,6 +19,7 @@ Full chain (first four addenda live in the household workspace):
 6. **`stage_1_prereg_fifth_addendum_2026-10-05.md`** ← this directory. Stage 2 four-arm design with both-ends-coherent stratification, LEAK_TEST_MODE positive control, Phase 5 ratification, external review attribution.
 7. **`stage_1_prereg_sixth_addendum_2026-10-08.md`** ← this directory. Gate 1 target seed lock (seed 20) after pre-flight fallback.
 8. **`stage_1_prereg_seventh_addendum_2026-10-08.md`** ← this directory. D_caution behavioral inertness finding; LEAK relocated D_caution → refusal_chance with activation counter + INVALID third state; per-channel behavioral activation audit as Phase 0.5 BLOCKER; ablation methodology for per-channel attribution.
+9. **`stage_1_prereg_eighth_addendum_2026-10-09.md`** ← this directory. Five-arm design (adds reactive arm in replay mode); single-channel burn-decay-timing claim; LEAK relocated refusal_chance → burn_decay; dose gate zero-source-dose handling; Phase 5 ratification stratified by total-coherent-agent-steps; MODE_HOT crash softening + crash handling pre-reg; TOST equivalence at ±0.3σ; intersection-union test; Chord-reference detached from claim statement. Integrates six audit catches: Sal 012/013/014/015 + 5.5 cycles 4/5/6 + Iris cross-domain + Annie forge completions.
 
 ## Contents
 

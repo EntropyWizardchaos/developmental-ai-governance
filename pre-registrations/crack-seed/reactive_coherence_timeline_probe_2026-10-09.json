@@ -1,0 +1,97 @@
+{
+  "task": "Task A: REACTIVE_COHERENCE_TIMELINE_PROBE",
+  "date": "2026-10-09",
+  "pre_registered_decision_rule": {
+    "source": "Nymph 035 2026-10-09 + Opus 5.5 open-loop-1 amendment 2026-10-09 (via Harley)",
+    "match_requires_both": {
+      "M1_declaration_match": "coherence_declaration identical on all 3 seeds",
+      "M2_timeline_match": "|symmetric_difference(coherent_tuples_hot, coherent_tuples_f5)| / |union(coherent_tuples_hot, coherent_tuples_f5)| <= 0.05 per seed"
+    },
+    "verdict_rules": {
+      "PROCEED_F5_AS_IS": "all 3 seeds satisfy M1 AND M2",
+      "USE_REPLAY": "any seed fails M1 or M2 (wire MODE_REACTIVE with hot's coherence timeline replayed into reactive)"
+    },
+    "both_paths_proceed_to_task_D": true,
+    "neither_blocks_phase_1": true
+  },
+  "measurement_spec": {
+    "seeds": [
+      20,
+      22,
+      33
+    ],
+    "n_steps": 3000,
+    "conditions": [
+      "HOT: reactive_mode=False, all_crack_enabled=True, arm_mode='hot'",
+      "F5:  reactive_mode=True,  all_crack_enabled=True, arm_mode='hot'"
+    ],
+    "tolerance": 0.05
+  },
+  "per_seed_results": {
+    "20": {
+      "hot": {
+        "coherent_tuples_count": 5746,
+        "coherence_declaration": true,
+        "final_pop": 6
+      },
+      "f5": {
+        "coherent_tuples_count": 13912,
+        "coherence_declaration": true,
+        "final_pop": 6
+      },
+      "divergence": {
+        "symmetric_difference_count": 8166,
+        "union_count": 13912,
+        "intersection_count": 5746,
+        "divergence_ratio": 0.5869752731454859
+      },
+      "m1_declaration_match": true,
+      "m2_timeline_match": false,
+      "seed_match_both_criteria": false
+    },
+    "22": {
+      "hot": {
+        "coherent_tuples_count": 8060,
+        "coherence_declaration": true,
+        "final_pop": 6
+      },
+      "f5": {
+        "coherent_tuples_count": 11958,
+        "coherence_declaration": true,
+        "final_pop": 6
+      },
+      "divergence": {
+        "symmetric_difference_count": 3898,
+        "union_count": 11958,
+        "intersection_count": 8060,
+        "divergence_ratio": 0.325974243184479
+      },
+      "m1_declaration_match": true,
+      "m2_timeline_match": false,
+      "seed_match_both_criteria": false
+    },
+    "33": {
+      "hot": {
+        "coherent_tuples_count": 5760,
+        "coherence_declaration": true,
+        "final_pop": 6
+      },
+      "f5": {
+        "coherent_tuples_count": 5760,
+        "coherence_declaration": true,
+        "final_pop": 6
+      },
+      "divergence": {
+        "symmetric_difference_count": 0,
+        "union_count": 5760,
+        "intersection_count": 5760,
+        "divergence_ratio": 0.0
+      },
+      "m1_declaration_match": true,
+      "m2_timeline_match": true,
+      "seed_match_both_criteria": true
+    }
+  },
+  "verdict": "USE_REPLAY",
+  "next_action": "Wire MODE_REACTIVE with hot's coherence timeline replayed into reactive. Gate timing held identical; only modulation VALUE differs. Task D with replay implementation."
+}

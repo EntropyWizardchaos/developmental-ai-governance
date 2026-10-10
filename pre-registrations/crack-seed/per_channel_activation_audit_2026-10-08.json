@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-09",
+  "purpose": "Per-channel behavioral activation audit per seventh addendum section 5.",
+  "pre_reg": "stage_1_prereg_seventh_addendum_2026-10-08.md",
+  "seeds": [
+    20,
+    22,
+    33
+  ],
+  "n_steps_per_seed": 3000,
+  "baseline_values": {
+    "burn_decay_mult": 1.0,
+    "trauma_decay_exp": 1.0,
+    "refusal_chance_SACRIFICE_REFUSAL_CHANCE": 0.1,
+    "D_caution": "dampening_fires_iff_D_eff > effective_D_caution AND dD > 0"
+  },
+  "thresholds": {
+    "HIGH_gt": 10,
+    "LOW_lt": 1
+  },
+  "results_per_seed": [
+    {
+      "seed": 20,
+      "elapsed_sec": 117.09,
+      "n_snapshots": 14500,
+      "coherent_snapshots": 5746,
+      "coherent_rate": 0.3963,
+      "consultations": {
+        "burn_decay": 2500,
+        "trauma_decay": 0,
+        "refusal_chance": 6,
+        "D_caution": 0
+      }
+    },
+    {
+      "seed": 22,
+      "elapsed_sec": 200.88,
+      "n_snapshots": 14500,
+      "coherent_snapshots": 8060,
+      "coherent_rate": 0.5559,
+      "consultations": {
+        "burn_decay": 2500,
+        "trauma_decay": 0,
+        "refusal_chance": 6,
+        "D_caution": 0
+      }
+    },
+    {
+      "seed": 33,
+      "elapsed_sec": 152.91,
+      "n_snapshots": 14500,
+      "coherent_snapshots": 5760,
+      "coherent_rate": 0.3972,
+      "consultations": {
+        "burn_decay": 2500,
+        "trauma_decay": 0,
+        "refusal_chance": 6,
+        "D_caution": 0
+      }
+    }
+  ],
+  "classification": {
+    "burn_decay": {
+      "per_seed_counts": [
+        2500,
+        2500,
+        2500
+      ],
+      "avg_per_seed": 2500.0,
+      "classification": "HIGH"
+    },
+    "trauma_decay": {
+      "per_seed_counts": [
+        0,
+        0,
+        0
+      ],
+      "avg_per_seed": 0.0,
+      "classification": "LOW"
+    },
+    "refusal_chance": {
+      "per_seed_counts": [
+        6,
+        6,
+        6
+      ],
+      "avg_per_seed": 6.0,
+      "classification": "MARGINAL"
+    },
+    "D_caution": {
+      "per_seed_counts": [
+        0,
+        0,
+        0
+      ],
+      "avg_per_seed": 0.0,
+      "classification": "LOW"
+    }
+  },
+  "verdict": "ANY_LOW_OR_MARGINAL",
+  "eighth_addendum_required": true
+}
