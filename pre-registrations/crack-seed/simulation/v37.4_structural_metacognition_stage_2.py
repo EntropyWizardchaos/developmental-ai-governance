@@ -689,6 +689,12 @@ class Agent:
         self.replay_coherence_timeline = replay_coherence_timeline
         self._replay_fallback_a = 0      # Case A: (agent,step) not in timeline
         self._replay_divergence_b = 0    # Case B: hot coherent, reactive observer not formed
+        # Task F snapshot schema (2026-10-13, §4e / Sal 015 R1 moderator):
+        # captured in step_observer BEFORE step_predictions overwrites predicted_*,
+        # then read by channel_snapshots dict construction in run_simulation.
+        # None until first step_observer call where observer.exists is True.
+        self._last_predicted_snapshot = None
+        self._last_actuals_snapshot = None
         self.observer = Observer()
         self.sustained_pressure_history = deque(maxlen=SUSTAINED_PRESSURE_WINDOW)
         # Legacy aliases — set from observer state by `step_observer()` / `update_observer_formation()`
@@ -845,6 +851,18 @@ class Agent:
                 'trauma_arrival': self._estimate_steps_to_next_trauma(),
                 'recovery_time':  self._estimate_recent_recovery_time(),
             }
+            # Task F snapshot (§4e / Sal 015 R1): capture BEFORE step_predictions
+            # overwrites observer.predicted_*. Note: in reactive mode,
+            # _apply_reactive_override will overwrite predicted_* with actuals
+            # AFTER step_predictions, but this captured snapshot reflects the
+            # authoritative pre-step_predictions prediction for this step.
+            self._last_predicted_snapshot = {
+                'C':              self.observer.predicted_C,
+                'burn_rate':      self.observer.predicted_burn_rate,
+                'trauma_arrival': self.observer.predicted_trauma_arrival,
+                'recovery_time':  self.observer.predicted_recovery_time,
+            }
+            self._last_actuals_snapshot = dict(actuals)
             step_predictions(self.observer, actuals)
             self._apply_reactive_override(actuals)
 
@@ -881,6 +899,18 @@ class Agent:
             'trauma_arrival': self._estimate_steps_to_next_trauma(),
             'recovery_time':  self._estimate_recent_recovery_time(),
         }
+
+        # Task F snapshot (§4e / Sal 015 R1): capture BEFORE step_predictions
+        # overwrites observer.predicted_*. Native path captures the authoritative
+        # observer prediction FOR this step (made at t-1), to be joined with
+        # the actual values seen at step t for the Phase 5 moderator.
+        self._last_predicted_snapshot = {
+            'C':              self.observer.predicted_C,
+            'burn_rate':      self.observer.predicted_burn_rate,
+            'trauma_arrival': self.observer.predicted_trauma_arrival,
+            'recovery_time':  self.observer.predicted_recovery_time,
+        }
+        self._last_actuals_snapshot = dict(actuals)
 
         step_predictions(self.observer, actuals)
 
@@ -2802,6 +2832,22 @@ def run_simulation(seed=None, all_crack_enabled=None, n_steps=None,
                     'refusal_prob_ref_cost_0_1': a.refusal_prob_ref_cost_0_1,
                     'D_eff': float(a.D_eff),  # v37.4 for dampening-firing-rate diagnostic
                     'taught_D_caution': a.taught_D_caution,  # v37.4 for effective_D_caution reconstruction
+                    # Task F snapshot schema (2026-10-13, eighth §4e / Sal 015 R1):
+                    # Observer prediction FOR this step (made at t-1), captured in
+                    # step_observer BEFORE step_predictions overwrote them. Joined with
+                    # the actuals observed at step t. Enables compute_prediction_actual_gap
+                    # in phase_5_analysis.py. Reactive runs have predicted==actual due to
+                    # F5 override; moderator reads HOT runs only per 015 R1.
+                    # moderator_ prefix avoids collision with 'actual_burn_rate' above
+                    # (which logs a.get_active_burn_rate() for burn_integral computation).
+                    'moderator_predicted_C':              (a._last_predicted_snapshot['C']              if a._last_predicted_snapshot else None),
+                    'moderator_predicted_burn_rate':      (a._last_predicted_snapshot['burn_rate']      if a._last_predicted_snapshot else None),
+                    'moderator_predicted_trauma_arrival': (a._last_predicted_snapshot['trauma_arrival'] if a._last_predicted_snapshot else None),
+                    'moderator_predicted_recovery_time':  (a._last_predicted_snapshot['recovery_time']  if a._last_predicted_snapshot else None),
+                    'moderator_actual_C':                 (a._last_actuals_snapshot['C']                if a._last_actuals_snapshot else None),
+                    'moderator_actual_burn_rate':         (a._last_actuals_snapshot['burn_rate']        if a._last_actuals_snapshot else None),
+                    'moderator_actual_trauma_arrival':    (a._last_actuals_snapshot['trauma_arrival']   if a._last_actuals_snapshot else None),
+                    'moderator_actual_recovery_time':     (a._last_actuals_snapshot['recovery_time']    if a._last_actuals_snapshot else None),
                 })
 
         # Logging
