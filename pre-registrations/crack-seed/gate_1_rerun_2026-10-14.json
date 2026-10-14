@@ -1,0 +1,69 @@
+{
+  "schema_version": "gate_1_rerun_v1_2026-10-14",
+  "generated_at": "2026-10-14T16:02:38",
+  "regime_sha_python_text_lf": "77b0097d95d61b8d5430b870a45889477e5006fc5443600aa6233456e8387f87",
+  "pre_reg_references": {
+    "ninth_addendum_commit": "0aad4cd",
+    "eighth_addendum_section": "\u00a75 LEAK_TEST_MODE positive control + \u00a74a-b dose gate",
+    "seventh_addendum": "LEAK relocation refusal_chance \u2192 burn_decay",
+    "sixth_addendum": "seed 20 lock"
+  },
+  "seed": 20,
+  "n_steps": 3000,
+  "baseline": {
+    "burn_integral": 1167.3661594356,
+    "max_coherent_steps": 2873,
+    "pop_final": 6
+  },
+  "n_leak_acted_min": 3,
+  "exercise_1": {
+    "description": "LEAK_TEST_MODE=True positive control \u2014 gate must discriminate",
+    "leak_test_mode": true,
+    "fingerprint": {
+      "burn_integral": 1166.9554469879,
+      "max_coherent_steps": 2873,
+      "pop_final": 6,
+      "terminal_C": [
+        0.889575941231356,
+        0.908151718450332,
+        0.946533142428967,
+        0.952010013164183,
+        0.9182084199727,
+        0.91208676236374
+      ],
+      "pop_series_len": 3000
+    },
+    "leak_counter": 2500,
+    "burn_integral_delta_vs_baseline": -0.41071244770000703,
+    "fingerprint_diverged_from_baseline": true,
+    "leak_counter_cleared_min": true,
+    "elapsed_seconds": 75.38006782531738,
+    "verdict": "PASS"
+  },
+  "exercise_2": {
+    "description": "LEAK_TEST_MODE=False production regime \u2014 bit-identity must hold",
+    "leak_test_mode": false,
+    "fingerprint": {
+      "burn_integral": 1167.3661594356,
+      "max_coherent_steps": 2873,
+      "pop_final": 6,
+      "terminal_C": [
+        0.889575941231356,
+        0.908151718450332,
+        0.946533142428967,
+        0.952010013164183,
+        0.9182084199727,
+        0.91208676236374
+      ],
+      "pop_series_len": 3000
+    },
+    "leak_counter": 0,
+    "burn_integral_bit_identical": true,
+    "max_coherent_steps_matches_baseline": true,
+    "pop_final_matches_baseline": true,
+    "leak_counter_zero": true,
+    "elapsed_seconds": 67.05743265151978,
+    "verdict": "PASS"
+  },
+  "overall_verdict": "PASS"
+}
