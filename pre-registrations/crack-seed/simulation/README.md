@@ -20,8 +20,9 @@ Runnable simulation code for the Crack seed Stage 2 pre-registered experiment. P
 
 ### Phase 5 analysis
 - **`phase_5_analysis.py`** — analysis module with ten callable exports: dose validity (`compute_arm_dose`, `compute_source_dose_pool`, `compute_reactive_dose_verdict`), ratification (`ratify_seed`), primary metric (`compute_primary_metric`), moderator (`compute_prediction_actual_gap` — HOT runs only per 015 R1), fallback rates (`compute_fallback_rates`), diagnostic (`compute_all_channel_doses`), main entry (`analyze_phase_1_output`), CLI (`python phase_5_analysis.py --output-dir ... --seed-pool ...`).
-- **`verify_prediction_actual_gap_moderator_2026-10-13.py`** — verification harness confirming `compute_prediction_actual_gap(hot_results)` runs end-to-end on a live hot sim trace, reads the `moderator_*` snapshot fields, and returns the expected quantity.
-- **`verify_moderator_output_2026-10-13.log`** — verification output log.
+- **`verify_prediction_actual_gap_moderator_2026-10-13.py`** — verification harness confirming `compute_prediction_actual_gap(hot_results)` runs end-to-end on a live hot sim trace, reads the `moderator_*` snapshot fields, and returns the expected quantity. **See tenth addendum §3 for the 2026-10-15 correction** — the original 2026-10-13 version contained print statements that contradicted the data (claimed "~matches hot's" while numbers showed 94× separation). Corrected version lives alongside under 2026-10-15 date.
+- **`verify_moderator_output_2026-10-13.log`** — **HISTORICAL** verification output log. Contains prose contradicting its own data per tenth addendum §3a. Superseded by `verify_moderator_output_2026-10-15.log`. Preserved in repo as audit evidence of the self-contradiction that was caught and corrected.
+- **`verify_moderator_output_2026-10-15.log`** — current verification output log; prose matches data; numerical values held bit-exactly from 2026-10-13 (hot `mean_abs_gap` = 130.93, reactive = 1.39, 94.1× separation confirms F5 override firing).
 
 ## SHAs (Python-text, LF-normalized)
 

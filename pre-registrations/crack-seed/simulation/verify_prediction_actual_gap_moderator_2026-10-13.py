@@ -71,9 +71,17 @@ else:
     print(f"\n*** FAIL *** moderator could not compute from populated schema")
     sys.exit(1)
 
-# Also sanity check: in reactive mode, F5 override makes predicted==actual.
-# Spec says moderator reads HOT only; verify reactive would report ~0 gap if asked.
-print("\nSanity check: reactive mode should show ~0 gap due to F5 override...")
+# Sanity check: reactive mode captures step-to-step actuals smoothness per
+# ninth addendum §3b semantics — specifically |actuals[t-1] - actuals[t]|,
+# NOT observer prediction error. Mechanism: at step t entry, observer.predicted_*
+# holds whatever F5 overwrote at end of step t-1 (= actuals[t-1]). My capture is
+# BEFORE step_predictions, so moderator_predicted_recovery_time captures
+# actuals[t-1]; moderator_actual_recovery_time captures actuals[t]. The resulting
+# "gap" is a step-to-step actuals delta. Expected ~94x separation from hot
+# (which captures genuine observer prediction error).
+# Per Sal 015 R1 + ninth §3b: moderator reads HOT only; reactive values are a
+# different quantity with diagnostic completeness value but not the moderator metric.
+print("\nSanity check: reactive mode captures step-to-step actuals smoothness (|actuals[t-1] - actuals[t]|), NOT prediction error (per ninth addendum §3b). Expected ~94x separation from hot.")
 replay_timeline = {
     (s['agent_id'], s['step']): s['observer_coherent']
     for s in hot_results['channel_snapshots']
@@ -91,14 +99,6 @@ reactive_result = p5.compute_prediction_actual_gap(reactive_results)
 print(f"  reactive n_coherent:   {reactive_result['n_coherent']}")
 print(f"  reactive mean_abs_gap: {reactive_result['mean_abs_gap']}")
 
-# In reactive mode, F5 override overwrites predicted_* with actuals AFTER
-# step_predictions. But our capture is BEFORE step_predictions, so predicted_
-# holds the observer's own prediction (just like hot). The DELTA (gap) might
-# therefore be close to hot's delta on seed 20 (same prediction machinery).
-# Confirms: reactive snapshot semantics preserved — moderator captures pre-F5
-# predictions, which match hot's for the moderator read.
-print(f"\n(Note: reactive moderator ~matches hot's because capture happens BEFORE")
-print(f" step_predictions AND BEFORE F5 override. The 015 R1 spec says 'HOT only'")
-print(f" as a convention — the moderator is an observer-prediction-quality metric,")
-print(f" and the observer runs identically in both arms pre-F5. Reactive just adds")
-print(f" diagnostic completeness.)")
+# Correct framing per ninth addendum §3b (supersedes the earlier mis-stated
+# docstring that claimed "reactive runs show predicted==actual trivially").
+print(f"\n(Note: reactive moderator measures a different quantity than hot — step-to-step actuals delta vs observer prediction error. A large ratio (hot >> reactive) confirms F5 is firing. See ninth addendum §3b for the mechanism walk; tenth addendum §4 errata footer explicitly acknowledges stale comments in v37.4:922 and v37.4:2839-2840 that pre-date this correction.)")
