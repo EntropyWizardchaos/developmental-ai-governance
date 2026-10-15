@@ -1,0 +1,296 @@
+{
+  "schema_version": "stage_2_trace_manifest_v1_2026-10-15",
+  "created_utc": "2026-10-15T10:59:46Z",
+  "regime_sha_python_text_lf": "77b0097d95d61b8d5430b870a45889477e5006fc5443600aa6233456e8387f87",
+  "pre_reg_references": {
+    "ninth_addendum_commit": "0aad4cd",
+    "design_doc_section_5": "trace pickle schema",
+    "design_doc_section_12": "Phase 2 \u2014 SHA-256 manifest, commit before Phase 3"
+  },
+  "k_coherent": 40,
+  "coherent_seeds": [
+    200,
+    203,
+    210,
+    215,
+    225,
+    227,
+    233,
+    239,
+    243,
+    246,
+    247,
+    248,
+    250,
+    251,
+    254,
+    257,
+    258,
+    263,
+    266,
+    267,
+    268,
+    269,
+    271,
+    272,
+    273,
+    280,
+    284,
+    287,
+    289,
+    291,
+    302,
+    305,
+    312,
+    313,
+    319,
+    323,
+    326,
+    330,
+    332,
+    333
+  ],
+  "trace_dir": "stage_2_traces",
+  "entries": [
+    {
+      "seed": 200,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_200.pkl",
+      "size_bytes": 1060476,
+      "sha256": "e8672e2bd81fdbde44af11552b21dd97067b52efdfad956897b6a1ffc3eb5a2f"
+    },
+    {
+      "seed": 203,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_203.pkl",
+      "size_bytes": 1032531,
+      "sha256": "f275afd7a1e8ed2dfd5ff28431cb293d3995360afbe068d2ea81c1ffad6c4170"
+    },
+    {
+      "seed": 210,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_210.pkl",
+      "size_bytes": 1032467,
+      "sha256": "d3ca58fc057c986b0223bf1323b1b94b70467a0042f07d8edd93e53ab0634f84"
+    },
+    {
+      "seed": 215,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_215.pkl",
+      "size_bytes": 1060428,
+      "sha256": "2946ffcc9e9998c5b6a8b417dc1febd05eb91d046d5bb01749e27b719c3f4b4a"
+    },
+    {
+      "seed": 225,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_225.pkl",
+      "size_bytes": 1060300,
+      "sha256": "855a4f2d9494499e8ad460616fa3cee8eaf659829fa86b85a148872fa65f182e"
+    },
+    {
+      "seed": 227,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_227.pkl",
+      "size_bytes": 1106572,
+      "sha256": "28964685a085109dce6112e48cf5984f93dd3520a2ac683167c5c32ed236e5e1"
+    },
+    {
+      "seed": 233,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_233.pkl",
+      "size_bytes": 1060316,
+      "sha256": "ac89dd1058bdf87e0b108b033b530a70c4a4cd80f25ce90714f112ebda7843af"
+    },
+    {
+      "seed": 239,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_239.pkl",
+      "size_bytes": 1032643,
+      "sha256": "502a7952cf54e3104aab3bfe7fdf17b5d2b3025e53d93fc310a6a1878d697e14"
+    },
+    {
+      "seed": 243,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_243.pkl",
+      "size_bytes": 1060668,
+      "sha256": "dc761fc952ba066b2bb0fc071957129e21f385d87eec612fee3a30aeaf404156"
+    },
+    {
+      "seed": 246,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_246.pkl",
+      "size_bytes": 1060476,
+      "sha256": "3b10e2e6f59d8eb64b1a875df3a0789072ef79a1257a2de876689bd8a6fb80b1"
+    },
+    {
+      "seed": 247,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_247.pkl",
+      "size_bytes": 1060492,
+      "sha256": "9250e72a720a52822416f1a1f87401865d9c75f69cfbc9267020cca93e47fb0d"
+    },
+    {
+      "seed": 248,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_248.pkl",
+      "size_bytes": 1060652,
+      "sha256": "7dad4ea27f3b0b1fa2b4eb341387afe5f0eecb6d4cc6dff393f589a34e9601ee"
+    },
+    {
+      "seed": 250,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_250.pkl",
+      "size_bytes": 1060284,
+      "sha256": "ad7d844a46d67242319bb4a6c0638e90851b6ee6d0ff9c8dfcc4f225bdc5ebee"
+    },
+    {
+      "seed": 251,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_251.pkl",
+      "size_bytes": 1078716,
+      "sha256": "1910e0169f889ae67a56de725e155cbd8541dd93ef349a36e3293ec0b9f3cb82"
+    },
+    {
+      "seed": 254,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_254.pkl",
+      "size_bytes": 1032579,
+      "sha256": "63765d24ab424372d664e0f69cdf92d9d716cbf3e0da501e3440d808c208604e"
+    },
+    {
+      "seed": 257,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_257.pkl",
+      "size_bytes": 1060397,
+      "sha256": "060d189c5fb9ca4161bf100c81ef2a66413a2bfbd5704422a8abc3496d6a4fa6"
+    },
+    {
+      "seed": 258,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_258.pkl",
+      "size_bytes": 1060253,
+      "sha256": "021d7b1b059013c63e13f42a6b927999258a26005da3599a129f5f86fbff16a0"
+    },
+    {
+      "seed": 263,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_263.pkl",
+      "size_bytes": 1060557,
+      "sha256": "940ac58c0001ada6ba64776e217429df933f776b7e103e28f68e09d9f75f2775"
+    },
+    {
+      "seed": 266,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_266.pkl",
+      "size_bytes": 1060589,
+      "sha256": "9380c33ca2569a4beab31a6da8311863d0e0fa24f965f4cb84e65acb79f8c424"
+    },
+    {
+      "seed": 267,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_267.pkl",
+      "size_bytes": 1060525,
+      "sha256": "4013491d4a46cf3d784f32395f8d47771ca44f4a32dc23734ffa639c2410aafa"
+    },
+    {
+      "seed": 268,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_268.pkl",
+      "size_bytes": 1060621,
+      "sha256": "181cba3375ca92eee6e60121f37840a7723e03c2bd450960f0549a490368a6ed"
+    },
+    {
+      "seed": 269,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_269.pkl",
+      "size_bytes": 1032404,
+      "sha256": "c3e8af04c17ec7cd3f4ea09e2b9ac701fe6bcce39ecf84937baef5e60db23400"
+    },
+    {
+      "seed": 271,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_271.pkl",
+      "size_bytes": 1032484,
+      "sha256": "723bee45ffe5566af38213a1faddd75135af73c527690869227c50252431bc58"
+    },
+    {
+      "seed": 272,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_272.pkl",
+      "size_bytes": 1060317,
+      "sha256": "efbf046c3a0bf0b44fe7694352c46723f7cab2f58498fbcee49b52bb4d7832de"
+    },
+    {
+      "seed": 273,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_273.pkl",
+      "size_bytes": 1060413,
+      "sha256": "0a5bfba8c60ef004a0504d2e26ba4b08a155dcf76049bff94201659a4bffac04"
+    },
+    {
+      "seed": 280,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_280.pkl",
+      "size_bytes": 1060349,
+      "sha256": "6fed4e1e5a08899172e1b0a4617ecaa0571363a74b7b515bb6d38681f1f0e515"
+    },
+    {
+      "seed": 284,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_284.pkl",
+      "size_bytes": 1060573,
+      "sha256": "9511764d527288eb8f95a641c8029364ac12bb49ef0744e4c791aa555c1b98ae"
+    },
+    {
+      "seed": 287,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_287.pkl",
+      "size_bytes": 1078701,
+      "sha256": "fe14672292d9b8c713ebacdbf8a2adc75cdae6a79924c2c04dbbfe138a573c64"
+    },
+    {
+      "seed": 289,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_289.pkl",
+      "size_bytes": 1032804,
+      "sha256": "b212145b1f6234b4f778dd49bb149fcf7dcc0cd9e7ce555d63219f38598c72c1"
+    },
+    {
+      "seed": 291,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_291.pkl",
+      "size_bytes": 1060333,
+      "sha256": "09cc3e8bcc38d8e4c456a1de43e8cafeb3115d021c049cde12dbae70edc20d22"
+    },
+    {
+      "seed": 302,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_302.pkl",
+      "size_bytes": 1060333,
+      "sha256": "d106dac94f35e4c8035471c6c604b2418060d7335d0a467f8d4a8c24d41f746f"
+    },
+    {
+      "seed": 305,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_305.pkl",
+      "size_bytes": 1032516,
+      "sha256": "3ab4df5dbbb800dac8fdf09e832928dca794bbeaa72ae10d0cac442eeadb9b17"
+    },
+    {
+      "seed": 312,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_312.pkl",
+      "size_bytes": 1032484,
+      "sha256": "dda31f298d33f6f01a2ae2b2a8a2c63f8346b8b9e311faf12e91131f26850f7c"
+    },
+    {
+      "seed": 313,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_313.pkl",
+      "size_bytes": 1060669,
+      "sha256": "6d62323c4868d874af45e7cc587ffa82288e28ca9c2fed21256935a42521e618"
+    },
+    {
+      "seed": 319,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_319.pkl",
+      "size_bytes": 1032596,
+      "sha256": "ad044e9a26b8643e21421c5a3d4f43d978c50070e413a11e1caf4f0d4a199162"
+    },
+    {
+      "seed": 323,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_323.pkl",
+      "size_bytes": 1032628,
+      "sha256": "5e7fc222657c5e1b3cd630b4af52bc6789226e074bfbf9870798486806ad8dd9"
+    },
+    {
+      "seed": 326,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_326.pkl",
+      "size_bytes": 1078925,
+      "sha256": "486ab3be2265dc3d44e044f0af45b2aab064017be3af584389b46621dc99f3ba"
+    },
+    {
+      "seed": 330,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_330.pkl",
+      "size_bytes": 1032516,
+      "sha256": "feac35931c82f382c5a1c97fd52154298397fe0f08a4c9031b3943b158767430"
+    },
+    {
+      "seed": 332,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_332.pkl",
+      "size_bytes": 1060589,
+      "sha256": "da0dc1212a685a998ec40baa533770f5f74597cadd2dfd8b3f733a15cde32a94"
+    },
+    {
+      "seed": 333,
+      "trace_pickle_path": "stage_2_traces\\trace_seed_333.pkl",
+      "size_bytes": 1032340,
+      "sha256": "1a4df4c966a397555a0dac3845b1a3da97aab35c190dd95dcc6ddab5a89a8c6e"
+    }
+  ]
+}
