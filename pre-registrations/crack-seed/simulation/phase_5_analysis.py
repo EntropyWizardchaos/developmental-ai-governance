@@ -26,6 +26,46 @@ per observer.py:636). All coherence counts come from `observer.coherent_steps`
 (plural) or from channel_snapshots['observer_coherent'] / ['coherent_steps'].
 See from_annie033_2026-10-13_task_g_hygiene_fixes.txt §H3.
 
+LEAK SIGNAL MANIFESTATION (reader-safety for Gate 1 output interpretation)
+--------------------------------------------------------------------------
+Observed in Gate 1 rerun (2026-10-14, SHA 77b0097d): the LEAK positive control
+(LEAK_TEST_MODE=True, 2500 injections of burn_decay_mult=0.5 during coherent
+moments on seed 20) perturbs `burn_integral` by −0.411 relative to baseline,
+BUT final `terminal_C` converges to the same values as LEAK=False by step 3000.
+Reading: recovery/healing/collapse dynamics overpower a mid-run multiplicative
+perturbation in burn dynamics on seeds with strong structural coherence
+attractors. The gate discriminator (`burn_integral` + `leak_counter`) fires
+correctly regardless. Any analysis comparing LEAK=True vs LEAK=False runs should
+expect: burn_integral and intermediate coherent-moment metrics DIVERGE;
+terminal metrics may CONVERGE on seeds like 20. This is NOT a correctness
+concern — it's a known property of how LEAK interacts with coherence-stabilizing
+feedback. Not a Phase 5 metric; reader-safety note only.
+
+F_ZERO MODERATOR SCOPE (reader-safety for §3e interpretation post-exclusion)
+----------------------------------------------------------------------------
+Per tenth addendum §1 (committed `eabdbf2`): if `f_zero > 0.05`, Phase 5 excludes
+coherent moments where `moderator_actual_recovery_time == 0.0` from §3e moderator
+computation. The 2026-10-15 f_zero computation returned 0.4883 (nearly half of
+coherent moments), so the rule fires: whole-record exclusion of zero-actual-
+recovery moments (both the `moderator_actual_recovery_time` AND the paired
+`moderator_predicted_recovery_time` from the same (step, agent, seed) record).
+
+SCOPE NOTE (per 5.5 external review 2026-10-15): the exclusion is a SELECTION.
+What remains after exclusion is observer prediction quality measured ONLY in
+windows after a recent recovery event — narrower than the §3e scope as
+originally written. The post-exclusion moderator does NOT measure prediction
+quality across all coherent moments; it measures prediction quality CONDITIONAL
+ON a recent recovery event being within the agent's trauma-history window.
+
+Phase 5 reports BOTH:
+  - UNFILTERED mean_abs_gap (comparable to the 130.93 ninth §3a figure)
+  - FILTERED mean_abs_gap (per tenth §1b rule, scope-noted as conditional)
+
+Future diagnostic (not pre-reg): if the sim can distinguish the two zero-
+conditions underlying f_zero (never-traumatized vs healed vs sentinel-no-recent-
+event), split f_zero into sub-fractions. Which condition dominates informs how
+narrow the post-filter scope actually is.
+
 OUTPUT
 ------
 A JSON report at phase_5_analysis_<timestamp>.json containing:
@@ -41,6 +81,7 @@ A JSON report at phase_5_analysis_<timestamp>.json containing:
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import pathlib
@@ -88,6 +129,188 @@ SOURCE_DOSE_ZERO = "SOURCE_DOSE_ZERO"
 
 # Arms expected per eighth §2a.
 ARMS = ("hot", "yoked", "matched", "reactive", "no_obs")
+
+# Pre-registered pre-reg artifacts for runtime verification per eleventh addendum.
+# These paths are relative to the directory containing phase_5_analysis.py.
+PHASE_3_4_MANIFEST_FILENAME = "phase_3_4_output_manifest_2026-10-15.json"
+PHASE_5_SHA_LOCK_FILENAME = "phase_5_analysis_sha_lock_2026-10-15.json"
+
+# Regime + hooks SHAs these analyses were pre-registered against (ninth §1 + tenth).
+REGIME_SHA_V37_4 = "77b0097d95d61b8d5430b870a45889477e5006fc5443600aa6233456e8387f87"
+STAGE_2_HOOKS_SHA = "66528da2"  # prefix recorded in prior addenda; full value in manifest at commit
+
+# Pre-registered Stage 1 v2 pooled SD on burn_integral (fifth §3, N=50 seeds 100-149).
+# Used only as the conservative upper-bound anchor for MDE reporting at Phase 5.
+STAGE_1_V2_POOLED_SD = 339.49
+
+
+# ============================================================================
+# Pre-reg runtime verification helpers (eleventh addendum §3b, §4b)
+# ============================================================================
+
+def _lf_normalize(text: str) -> bytes:
+    """CRLF/CR → LF normalization for cross-platform SHA stability (ninth §1)."""
+    return text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+
+
+def _sha256_of_file_lf_text(path: pathlib.Path) -> str:
+    """SHA-256 of a text file, LF-normalized. Parallel to ninth §1 regime SHA
+    convention. Used for self-verification of phase_5_analysis.py."""
+    text = path.read_text(encoding="utf-8")
+    return hashlib.sha256(_lf_normalize(text)).hexdigest()
+
+
+def _sha256_of_file_raw(path: pathlib.Path) -> str:
+    """SHA-256 of a file's raw bytes (binary pickles, Windows-CRLF text).
+    Pickle manifests use raw-bytes SHA (sha256_algorithm = 'sha256_raw_bytes')."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def verify_self_sha(script_path: pathlib.Path, lock_path: pathlib.Path) -> dict:
+    """Compute phase_5_analysis.py SHA-256 (LF-normalized text) and compare
+    against the pre-registered lock file per eleventh addendum §4b.
+
+    Returns dict with keys:
+      - locked (expected SHA from lock file, or None if lock file absent)
+      - observed (computed SHA of this script)
+      - match (bool; True iff locked == observed; None if locked is None)
+      - lock_file_present (bool)
+    """
+    observed = _sha256_of_file_lf_text(script_path)
+    out: dict[str, Any] = {
+        "locked": None,
+        "observed": observed,
+        "match": None,
+        "lock_file_present": lock_path.exists(),
+    }
+    if lock_path.exists():
+        with open(lock_path, encoding="utf-8") as f:
+            lock_data = json.load(f)
+        out["locked"] = lock_data.get("sha256_lf")
+        out["match"] = (out["locked"] == observed)
+    return out
+
+
+def verify_phase_3_4_manifest(
+    manifest_path: pathlib.Path,
+    pickle_dir: pathlib.Path,
+) -> dict:
+    """Per eleventh §3b: load Phase 3-4 output manifest, SHA-verify each pickle.
+
+    Returns dict with keys:
+      - manifest_sha (SHA-256 of manifest JSON file itself)
+      - manifest_present (bool)
+      - total_pickles_expected
+      - verification: 'PASS' | 'FAIL_WITH_LIST' | 'NO_MANIFEST'
+      - failures: list of {path, expected_sha, observed_sha} for FAIL_WITH_LIST
+    """
+    if not manifest_path.exists():
+        return {
+            "manifest_sha": None,
+            "manifest_present": False,
+            "total_pickles_expected": 0,
+            "verification": "NO_MANIFEST",
+            "failures": [],
+        }
+
+    manifest_sha = _sha256_of_file_raw(manifest_path)
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    pickles = manifest.get("pickles", [])
+    failures: list[dict] = []
+    for p in pickles:
+        rel_path = p["path"]
+        expected = p["sha256"]
+        pkl_path = pickle_dir / rel_path if not pathlib.Path(rel_path).is_absolute() \
+                   else pathlib.Path(rel_path)
+        if not pkl_path.exists():
+            failures.append({
+                "path": rel_path, "expected_sha": expected,
+                "observed_sha": None, "reason": "FILE_NOT_FOUND",
+            })
+            continue
+        observed = _sha256_of_file_raw(pkl_path)
+        if observed != expected:
+            failures.append({
+                "path": rel_path, "expected_sha": expected,
+                "observed_sha": observed, "reason": "SHA_MISMATCH",
+            })
+
+    return {
+        "manifest_sha": manifest_sha,
+        "manifest_present": True,
+        "total_pickles_expected": len(pickles),
+        "verification": "PASS" if not failures else "FAIL_WITH_LIST",
+        "failures": failures,
+    }
+
+
+# ============================================================================
+# Architecture-claim verdict mapping (eleventh addendum §1b + §1f)
+# ============================================================================
+# Exhaustive 4×4 verdict table over (hv_verdict, hr_verdict) per Sal 020 §1
+# expansion ask. Maps the four _verdict_vs_threshold outputs onto §1f's four
+# architecture-claim verdict classes. Mechanical, no post-hoc adjudication.
+#
+# Row: hv_verdict (hot − yoked); Column: hr_verdict (hot − reactive).
+# Per eighth §4c, SUPPORTED requires BOTH BELOW_THRESHOLD (sign-direction:
+# hot < non-predictive comparators). Any ABOVE_THRESHOLD on either side is
+# UNEXPECTED (direction wrong). WITHIN_THRESHOLD = TOST equivalence declared;
+# fires EQUIVALENCE_REJECTED when paired with any non-ABOVE on the other side.
+# CI_STRADDLES_THRESHOLD is INCONCLUSIVE on that pair; UNEXPECTED only when
+# the other side is ABOVE_THRESHOLD. See eighth §4c quadrants (a,b,c,d).
+#
+# §1b sub-case note (preserved for interpretation, not a verdict class):
+# When hv=BELOW_THRESHOLD and hr=WITHIN_THRESHOLD, the EQUIVALENCE_REJECTED
+# verdict carries the specific interpretation "FEEDBACK_MATTERS; prediction
+# adds nothing beyond feedback" (empirically-derived Option-2 outcome). This
+# is reported as architecture_claim_feedback_matters_specific_subcase=True
+# alongside the primary verdict.
+
+ARCHITECTURE_CLAIM_VERDICT_TABLE: dict[tuple[str, str], str] = {
+    # (hv, hr) -> verdict
+    ("ABOVE_THRESHOLD", "ABOVE_THRESHOLD"):     "UNEXPECTED",
+    ("ABOVE_THRESHOLD", "BELOW_THRESHOLD"):     "UNEXPECTED",
+    ("ABOVE_THRESHOLD", "WITHIN_THRESHOLD"):    "UNEXPECTED",
+    ("ABOVE_THRESHOLD", "CI_STRADDLES_THRESHOLD"): "UNEXPECTED",
+    ("BELOW_THRESHOLD", "ABOVE_THRESHOLD"):     "UNEXPECTED",
+    ("BELOW_THRESHOLD", "BELOW_THRESHOLD"):     "SUPPORTED",
+    ("BELOW_THRESHOLD", "WITHIN_THRESHOLD"):    "EQUIVALENCE_REJECTED",
+    ("BELOW_THRESHOLD", "CI_STRADDLES_THRESHOLD"): "INCONCLUSIVE",
+    ("WITHIN_THRESHOLD", "ABOVE_THRESHOLD"):    "UNEXPECTED",
+    ("WITHIN_THRESHOLD", "BELOW_THRESHOLD"):    "UNEXPECTED",
+    ("WITHIN_THRESHOLD", "WITHIN_THRESHOLD"):   "EQUIVALENCE_REJECTED",
+    ("WITHIN_THRESHOLD", "CI_STRADDLES_THRESHOLD"): "EQUIVALENCE_REJECTED",
+    ("CI_STRADDLES_THRESHOLD", "ABOVE_THRESHOLD"):     "UNEXPECTED",
+    ("CI_STRADDLES_THRESHOLD", "BELOW_THRESHOLD"):     "UNEXPECTED",
+    ("CI_STRADDLES_THRESHOLD", "WITHIN_THRESHOLD"):    "EQUIVALENCE_REJECTED",
+    ("CI_STRADDLES_THRESHOLD", "CI_STRADDLES_THRESHOLD"): "INCONCLUSIVE",
+}
+
+
+def compute_architecture_claim_verdict(hv_verdict: str, hr_verdict: str) -> dict:
+    """Mechanical mapping of (hv_verdict, hr_verdict) to architecture-claim verdict
+    per eleventh addendum §1f. Raises if either input is not a known _verdict_vs_threshold
+    output (defensive against renames)."""
+    valid = {"ABOVE_THRESHOLD", "BELOW_THRESHOLD", "WITHIN_THRESHOLD", "CI_STRADDLES_THRESHOLD"}
+    if hv_verdict not in valid or hr_verdict not in valid:
+        raise ValueError(
+            f"Unknown verdict strings: hv={hv_verdict!r}, hr={hr_verdict!r}. "
+            f"Must be in {valid}."
+        )
+    verdict = ARCHITECTURE_CLAIM_VERDICT_TABLE[(hv_verdict, hr_verdict)]
+    feedback_matters_subcase = (
+        hv_verdict == "BELOW_THRESHOLD" and hr_verdict == "WITHIN_THRESHOLD"
+    )
+    return {
+        "architecture_claim_verdict": verdict,
+        "architecture_claim_feedback_matters_specific_subcase": feedback_matters_subcase,
+    }
 
 
 # ============================================================================
@@ -319,6 +542,25 @@ def _ci95(mean: float, sem: float, n: int) -> tuple[float, float]:
     return (mean - half, mean + half)
 
 
+def _paired_sd(values: list[float]) -> float:
+    """Sample SD (n-1 ddof) of per-seed paired differences."""
+    n = len(values)
+    if n < 2:
+        return 0.0
+    m = sum(values) / n
+    var = sum((v - m) ** 2 for v in values) / (n - 1)
+    return math.sqrt(var)
+
+
+def _mde_at_sd(sd: float, n: int) -> float:
+    """MDE for BELOW_THRESHOLD under registered rule, per eleventh §1c:
+       MDE = threshold + 1.96 × (SD / √n)
+    Reported diagnostically alongside observed paired-SD. Does NOT change verdict."""
+    if n <= 0:
+        return float("nan")
+    return PRIMARY_THRESHOLD_LOCKED + 1.96 * (sd / math.sqrt(n))
+
+
 def compute_primary_metric(
     hot_bis: list, yoked_bis: list, reactive_bis: list,
 ) -> dict:
@@ -327,9 +569,11 @@ def compute_primary_metric(
     Inputs are per-seed burn_integral values on the COHERENCE-DECLARED subset.
     Returns:
       - per_seed_hot_minus_yoked, per_seed_hot_minus_reactive (lists)
-      - hot_minus_yoked_mean, ci95, verdict
-      - hot_minus_reactive_mean, ci95, verdict (TOST equivalence)
-      - intersection_union_verdict
+      - hot_minus_yoked: mean, sem, paired_sd, ci95, verdict, mde_observed_at_paired_sd
+      - hot_minus_reactive: same + tost_equivalence_at_threshold
+      - architecture_claim_verdict + architecture_claim_feedback_matters_specific_subcase
+        (eleventh §1f mechanical mapping over the four _verdict_vs_threshold classes)
+      - intersection_union_verdict (legacy field, retained for continuity)
     """
     n = min(len(hot_bis), len(yoked_bis), len(reactive_bis))
     if n == 0:
@@ -342,6 +586,10 @@ def compute_primary_metric(
     hr_mean, hr_sem, _ = _mean_sem(hr)
     hv_ci = _ci95(hv_mean, hv_sem, n)
     hr_ci = _ci95(hr_mean, hr_sem, n)
+    hv_sd = _paired_sd(hv)
+    hr_sd = _paired_sd(hr)
+    hv_mde = _mde_at_sd(hv_sd, n)
+    hr_mde = _mde_at_sd(hr_sd, n)
 
     # Primary verdicts (§3c): 95% CI vs ±PRIMARY_THRESHOLD_LOCKED.
     def _verdict_vs_threshold(ci: tuple[float, float]) -> str:
@@ -361,27 +609,46 @@ def compute_primary_metric(
     # Reject non-equivalence if upper CI < +threshold AND lower CI > -threshold.
     hr_tost = (hr_ci[0] > -PRIMARY_THRESHOLD_LOCKED) and (hr_ci[1] < PRIMARY_THRESHOLD_LOCKED)
 
-    # Intersection-union (§3d): architecture claim requires hot differs from
-    # BOTH yoked AND reactive by more than threshold.
-    arch_claim = (hv_verdict in ("ABOVE_THRESHOLD", "BELOW_THRESHOLD")) and \
-                 (hr_verdict in ("ABOVE_THRESHOLD", "BELOW_THRESHOLD"))
+    # Architecture-claim verdict (eleventh §1f mechanical mapping).
+    arch = compute_architecture_claim_verdict(hv_verdict, hr_verdict)
+
+    # Legacy intersection-union field — retained for continuity with pre-eleventh
+    # output readers. Equivalent to arch_claim_verdict == 'SUPPORTED' when both
+    # inputs are in direction set {ABOVE, BELOW}, retained for backward
+    # compatibility only. Eleventh §1f's architecture_claim_verdict is the
+    # authoritative pre-registered field.
+    arch_claim_legacy = (hv_verdict in ("ABOVE_THRESHOLD", "BELOW_THRESHOLD")) and \
+                        (hr_verdict in ("ABOVE_THRESHOLD", "BELOW_THRESHOLD"))
 
     return {
         "n_seeds": n,
         "per_seed_hot_minus_yoked": hv,
         "per_seed_hot_minus_reactive": hr,
         "hot_minus_yoked": {
-            "mean": hv_mean, "sem": hv_sem, "ci95": hv_ci,
-            "threshold": PRIMARY_THRESHOLD_LOCKED, "verdict": hv_verdict,
+            "mean": hv_mean,
+            "sem": hv_sem,
+            "paired_sd": hv_sd,
+            "ci95": hv_ci,
+            "threshold": PRIMARY_THRESHOLD_LOCKED,
+            "verdict": hv_verdict,
+            "mde_observed_at_paired_sd": hv_mde,
         },
         "hot_minus_reactive": {
-            "mean": hr_mean, "sem": hr_sem, "ci95": hr_ci,
-            "threshold": PRIMARY_THRESHOLD_LOCKED, "verdict": hr_verdict,
+            "mean": hr_mean,
+            "sem": hr_sem,
+            "paired_sd": hr_sd,
+            "ci95": hr_ci,
+            "threshold": PRIMARY_THRESHOLD_LOCKED,
+            "verdict": hr_verdict,
+            "mde_observed_at_paired_sd": hr_mde,
             "tost_equivalence_at_threshold": hr_tost,
         },
+        "architecture_claim_verdict": arch["architecture_claim_verdict"],
+        "architecture_claim_feedback_matters_specific_subcase":
+            arch["architecture_claim_feedback_matters_specific_subcase"],
         "intersection_union": {
-            "architecture_claim_supported": arch_claim,
-            "note": "Both hot−yoked and hot−reactive must cross threshold for support.",
+            "architecture_claim_supported": arch_claim_legacy,
+            "note": "Legacy field. Eleventh §1f architecture_claim_verdict is authoritative.",
         },
     }
 
@@ -396,21 +663,30 @@ def compute_prediction_actual_gap(hot_results: dict) -> dict:
 
     Reactive runs are not used — this is the hot-side prediction quality.
     Exploratory moderator for correlation with hot−reactive delta.
+
+    Returns both UNFILTERED and FILTERED (post-f_zero-exclusion) versions per
+    eleventh addendum §2b, so Phase 5 can report them side-by-side against the
+    ninth §3a UNFILTERED 130.93 baseline:
+      - unfiltered_n_coherent / unfiltered_mean_abs_gap: all coherent moments
+      - filtered_n_coherent  / filtered_mean_abs_gap:   excludes records where
+                                                       moderator_actual_recovery_time == 0.0
+                                                       per tenth §1b whole-record rule
+                                                       (fires because f_zero=0.4883 > 0.05)
+      - zero_actual_excluded_count: how many records removed by the rule
     """
     # Reads moderator_predicted_recovery_time and moderator_actual_recovery_time
     # from channel_snapshots. These fields are added by the Task F snapshot-schema
     # extension (v37_4_task_f_snapshot_schema_patch.py) applied 2026-10-13; they
     # are captured in step_observer BEFORE step_predictions overwrites predicted_*.
     #
-    # The moderator_ prefix avoids collision with the existing 'actual_burn_rate'
-    # field (which logs a.get_active_burn_rate() for burn_integral and is a
-    # different concept than the step-observer-time actual used for prediction
-    # error measurement).
-    #
     # Returns None values + note if the schema fields are absent (regime before
     # Task F patch landed).
-    predicted = []
-    actual = []
+    predicted_unfiltered: list[float] = []
+    actual_unfiltered: list[float] = []
+    predicted_filtered: list[float] = []
+    actual_filtered: list[float] = []
+    zero_actual_count = 0
+
     for s in hot_results.get("channel_snapshots", []):
         if not s.get("observer_coherent", False):
             continue
@@ -418,20 +694,45 @@ def compute_prediction_actual_gap(hot_results: dict) -> dict:
         a = s.get("moderator_actual_recovery_time")
         if p is None or a is None:
             continue
-        predicted.append(float(p))
-        actual.append(float(a))
+        pf = float(p)
+        af = float(a)
+        predicted_unfiltered.append(pf)
+        actual_unfiltered.append(af)
+        # Per tenth §1b: whole-record exclusion when actual_recovery_time == 0.0.
+        # Exclusion is of the (p, a) pair together, not just one side.
+        if af == 0.0:
+            zero_actual_count += 1
+            continue
+        predicted_filtered.append(pf)
+        actual_filtered.append(af)
 
-    if not predicted:
+    if not predicted_unfiltered:
         return {
-            "n_coherent": 0,
-            "mean_abs_gap": None,
+            "unfiltered_n_coherent": 0,
+            "unfiltered_mean_abs_gap": None,
+            "filtered_n_coherent": 0,
+            "filtered_mean_abs_gap": None,
+            "zero_actual_excluded_count": 0,
             "note": "No coherent moments with moderator_* fields populated; schema may predate Task F patch (SHA 77b0097d...).",
         }
 
-    gaps = [abs(p - a) for p, a in zip(predicted, actual)]
+    gaps_u = [abs(p - a) for p, a in zip(predicted_unfiltered, actual_unfiltered)]
+    unfiltered_mean = sum(gaps_u) / len(gaps_u)
+
+    if predicted_filtered:
+        gaps_f = [abs(p - a) for p, a in zip(predicted_filtered, actual_filtered)]
+        filtered_mean = sum(gaps_f) / len(gaps_f)
+        filtered_n = len(gaps_f)
+    else:
+        filtered_mean = None
+        filtered_n = 0
+
     return {
-        "n_coherent": len(gaps),
-        "mean_abs_gap": sum(gaps) / len(gaps),
+        "unfiltered_n_coherent": len(gaps_u),
+        "unfiltered_mean_abs_gap": unfiltered_mean,
+        "filtered_n_coherent": filtered_n,
+        "filtered_mean_abs_gap": filtered_mean,
+        "zero_actual_excluded_count": zero_actual_count,
     }
 
 
@@ -495,6 +796,11 @@ def compute_all_channel_doses(
 # ============================================================================
 
 def _default_loader(output_dir: pathlib.Path, seed: int, arm: str) -> dict:
+    """Load per-seed per-arm pickle. Requires v37_4 module registered in
+    sys.modules so pickle can resolve Agent class references in final_agents.
+    Caller must have loaded v37.4 via importlib with sys.modules["v37_4"]=mod
+    before invoking analyze_phase_1_output.
+    """
     path = output_dir / f"phase_1_seed_{seed}_arm_{arm}.pkl"
     with open(path, "rb") as f:
         return pickle.load(f)
@@ -505,35 +811,119 @@ def analyze_phase_1_output(
     seed_pool: list[int],
     loader: Callable[[pathlib.Path, int, str], dict] | None = None,
     report_path: str | pathlib.Path | None = None,
+    manifest_path: str | pathlib.Path | None = None,
+    sha_lock_path: str | pathlib.Path | None = None,
+    script_path: str | pathlib.Path | None = None,
 ) -> dict:
-    """Run full Phase 5 analysis on Phase 1 compute output.
+    """Run full Phase 5 analysis on Phase 1 + Phase 3-4 compute output.
+
+    Per eleventh addendum §3d / §4d: emits Phase 3-4 manifest verification and
+    phase_5_analysis.py SHA verification fields in the output JSON. If the SHA
+    lock file is absent, phase_5_analysis_sha_locked is reported as null and
+    match as null (pre-reg lock has not been baked yet; output is void under
+    §4d but produced for pre-commit inspection).
 
     Args:
       output_dir: directory containing per-seed per-arm pickles
       seed_pool: list of seeds in the Phase 1 pool
       loader: optional override; defaults to _default_loader
       report_path: optional path for JSON output; default writes alongside output_dir
+      manifest_path: Phase 3-4 output manifest JSON (defaults to
+                     <output_dir parent>/phase_3_4_output_manifest_2026-10-15.json)
+      sha_lock_path: phase_5_analysis.py SHA lock JSON (defaults to
+                     <script_dir>/phase_5_analysis_sha_lock_2026-10-15.json)
+      script_path: path to this script for self-SHA computation (defaults to __file__)
     """
     output_dir = pathlib.Path(output_dir)
     loader = loader or _default_loader
+    script_path = pathlib.Path(script_path) if script_path else pathlib.Path(__file__).resolve()
+    script_dir = script_path.parent
+    if manifest_path is None:
+        manifest_path = script_dir / PHASE_3_4_MANIFEST_FILENAME
+    manifest_path = pathlib.Path(manifest_path)
+    if sha_lock_path is None:
+        sha_lock_path = script_dir / PHASE_5_SHA_LOCK_FILENAME
+    sha_lock_path = pathlib.Path(sha_lock_path)
+
+    # Pre-reg runtime verification (eleventh §3b + §4b).
+    sha_verify = verify_self_sha(script_path, sha_lock_path)
+    manifest_verify = verify_phase_3_4_manifest(manifest_path, output_dir)
+    f_zero_report_path = script_dir / "f_zero_report_2026-10-15.json"
+    f_zero_report: dict = {}
+    if f_zero_report_path.exists():
+        with open(f_zero_report_path, encoding="utf-8") as f:
+            f_zero_report = json.load(f)
 
     report: dict[str, Any] = {
-        "schema_version": "phase_5_analysis_v1_2026-10-13",
+        "schema_version": "phase_5_analysis_v2_eleventh_addendum_2026-10-15",
         "seed_pool": list(seed_pool),
         "primary_threshold": PRIMARY_THRESHOLD_LOCKED,
         "dose_tolerance": DOSE_TOLERANCE,
+        # §4d pre-reg SHA-lock fields.
+        "phase_5_analysis_sha_locked":  sha_verify["locked"],
+        "phase_5_analysis_sha_observed": sha_verify["observed"],
+        "phase_5_analysis_sha_match":    sha_verify["match"],
+        # §3d pre-reg manifest fields.
+        "phase_3_4_manifest_sha":          manifest_verify["manifest_sha"],
+        "phase_3_4_manifest_verification": manifest_verify["verification"],
+        "phase_3_4_manifest_failures":     manifest_verify["failures"],
+        # f_zero handoff (tenth §1b fired; eleventh §2a-c reader-side).
+        "f_zero":            f_zero_report.get("f_zero"),
+        "f_zero_threshold":  f_zero_report.get("threshold"),
+        "f_zero_exceeds":    f_zero_report.get("exceeds_threshold"),
+        "f_zero_rule_applied": f_zero_report.get("rule_applied"),
+        # §2c: zero-condition decomposition unavailable from current snapshot schema.
+        # moderator_actual_recovery_time == 0.0 collapses sentinel-no-data and
+        # legitimate-instant-recovery into the same value with no auxiliary signal.
+        "f_zero_decomposition": "unavailable",
+        "f_zero_decomposition_note": (
+            "The current observer.py / channel_snapshots schema does not expose an "
+            "auxiliary flag to distinguish sentinel-no-data (no recent recovery in "
+            "observer window) from legitimate-instant-recovery (actual zero-latency "
+            "recovery event). Per eleventh §2c, this is reported as unavailable."
+        ),
         "per_seed": {},
     }
+
+    # If the manifest is present, SHA-verify every pickle BEFORE pickle.load.
+    verify_before_load = manifest_verify["manifest_present"]
+    manifest_sha_by_path: dict[str, str] = {}
+    if verify_before_load:
+        with open(manifest_path, encoding="utf-8") as f:
+            m = json.load(f)
+        for p in m.get("pickles", []):
+            manifest_sha_by_path[p["path"]] = p["sha256"]
+
+    def _verified_loader(od: pathlib.Path, seed: int, arm: str) -> dict:
+        path = od / f"phase_1_seed_{seed}_arm_{arm}.pkl"
+        if verify_before_load:
+            # Resolve the manifest key: try absolute, then filename, then relative.
+            candidates = [str(path), path.name, f"phase_1_output_2026-10-14/{path.name}"]
+            expected = None
+            for c in candidates:
+                if c in manifest_sha_by_path:
+                    expected = manifest_sha_by_path[c]
+                    break
+            if expected is not None:
+                observed = _sha256_of_file_raw(path)
+                if observed != expected:
+                    raise RuntimeError(
+                        f"Pickle SHA mismatch for seed={seed} arm={arm}: "
+                        f"expected={expected} observed={observed}"
+                    )
+        return loader(od, seed, arm)
+
+    load = _verified_loader
 
     # Pass 1: ratification + Case A/B + reactive dose per seed.
     hot_by_seed: dict[int, dict] = {}
     yoked_by_seed: dict[int, dict] = {}
     reactive_by_seed: dict[int, dict] = {}
     for seed in seed_pool:
-        hot_r = loader(output_dir, seed, "hot")
-        no_obs_r = loader(output_dir, seed, "no_obs")
-        yoked_r = loader(output_dir, seed, "yoked")
-        reactive_r = loader(output_dir, seed, "reactive")
+        hot_r = load(output_dir, seed, "hot")
+        no_obs_r = load(output_dir, seed, "no_obs")
+        yoked_r = load(output_dir, seed, "yoked")
+        reactive_r = load(output_dir, seed, "reactive")
 
         hot_by_seed[seed] = hot_r
         yoked_by_seed[seed] = yoked_r
@@ -593,6 +983,114 @@ def analyze_phase_1_output(
         "reactive_valid_only": primary_rv,
     }
 
+    # §1f hoisted top-level fields — authoritative values are from reactive_valid_only
+    # (the dose-gated subset per §5b). Falls back to all_declared if reactive-valid is empty.
+    pm_auth = primary_rv if (reactive_valid and primary_rv.get("n_seeds", 0) > 0) else primary_full
+    if pm_auth.get("n_seeds", 0) > 0:
+        hv_d = pm_auth["hot_minus_yoked"]
+        hr_d = pm_auth["hot_minus_reactive"]
+        report["hv_mean"] = hv_d["mean"]
+        report["hv_sem"] = hv_d["sem"]
+        report["hv_ci_95"] = hv_d["ci95"]
+        report["hv_verdict"] = hv_d["verdict"]
+        report["paired_sd_hv"] = hv_d["paired_sd"]
+        report["mde_observed_at_paired_sd_hv"] = hv_d["mde_observed_at_paired_sd"]
+        report["hr_mean"] = hr_d["mean"]
+        report["hr_sem"] = hr_d["sem"]
+        report["hr_ci_95"] = hr_d["ci95"]
+        report["hr_verdict"] = hr_d["verdict"]
+        report["paired_sd_hr"] = hr_d["paired_sd"]
+        report["mde_observed_at_paired_sd_hr"] = hr_d["mde_observed_at_paired_sd"]
+        report["architecture_claim_verdict"] = pm_auth["architecture_claim_verdict"]
+        report["architecture_claim_feedback_matters_specific_subcase"] = \
+            pm_auth["architecture_claim_feedback_matters_specific_subcase"]
+    else:
+        report["architecture_claim_verdict"] = "INSUFFICIENT_DATA"
+        report["architecture_claim_feedback_matters_specific_subcase"] = False
+
+    # §2b hoisted top-level: pooled moderator fields (UNFILTERED and FILTERED).
+    # Compute pooled mean across coherent seeds using per-seed gap values weighted
+    # by their n_coherent counts (equivalent to concatenating all gaps and averaging).
+    def _pooled_moderator(key_n: str, key_mean: str) -> tuple[int, float | None]:
+        pooled_n = 0
+        pooled_sum = 0.0
+        for s in declared_seeds:
+            d = report["per_seed"][s]["prediction_actual_gap"]
+            n_i = d.get(key_n, 0) or 0
+            mean_i = d.get(key_mean)
+            if mean_i is None or n_i == 0:
+                continue
+            pooled_n += n_i
+            pooled_sum += mean_i * n_i
+        return pooled_n, (pooled_sum / pooled_n) if pooled_n > 0 else None
+
+    unfiltered_n, unfiltered_mean = _pooled_moderator("unfiltered_n_coherent",
+                                                       "unfiltered_mean_abs_gap")
+    filtered_n, filtered_mean = _pooled_moderator("filtered_n_coherent",
+                                                   "filtered_mean_abs_gap")
+    pooled_zero_excl = sum(
+        (report["per_seed"][s]["prediction_actual_gap"].get("zero_actual_excluded_count", 0) or 0)
+        for s in declared_seeds
+    )
+    report["moderator_pooled"] = {
+        "unfiltered_n": unfiltered_n,
+        "unfiltered_mean_abs_gap": unfiltered_mean,
+        "ninth_3a_hot_unfiltered_baseline": 130.93,
+        "filtered_n": filtered_n,
+        "filtered_mean_abs_gap": filtered_mean,
+        "zero_actual_excluded_count_pooled": pooled_zero_excl,
+        "scope_note": (
+            "Post-exclusion moderator measures observer prediction quality CONDITIONAL "
+            "on a recent recovery event, per eleventh §2b. Compare UNFILTERED side-by-side "
+            "against ninth §3a's 130.93 baseline."
+        ),
+    }
+
+    # §2d reader-safety: per-seed retained-N moderator stats + underpowered/heterogeneous flags.
+    # Thresholds (eleventh §2d): any seed with retained < 500 → MODERATOR_UNDERPOWERED_PER_SEED;
+    # coefficient-of-variation of retained-N across seeds > 0.5 → MODERATOR_RETAINED_N_HETEROGENEOUS.
+    # These flags do NOT invalidate the primary metric; they are reader-safety signals for
+    # §3e moderator interpretability only.
+    retained_n_per_seed: dict[int, int] = {}
+    mean_abs_gap_per_seed: dict[int, float | None] = {}
+    for s in declared_seeds:
+        d = report["per_seed"][s]["prediction_actual_gap"]
+        retained_n_per_seed[s] = int(d.get("filtered_n_coherent", 0) or 0)
+        mean_abs_gap_per_seed[s] = d.get("filtered_mean_abs_gap")
+
+    retained_values = list(retained_n_per_seed.values())
+    if retained_values:
+        retained_mean = sum(retained_values) / len(retained_values)
+        if retained_mean > 0 and len(retained_values) >= 2:
+            retained_var = sum((v - retained_mean) ** 2 for v in retained_values) / (len(retained_values) - 1)
+            retained_cov = math.sqrt(retained_var) / retained_mean
+        else:
+            retained_cov = 0.0
+    else:
+        retained_mean = 0.0
+        retained_cov = 0.0
+
+    reader_safety_flags: list[str] = []
+    if any(v < 500 for v in retained_values):
+        reader_safety_flags.append("MODERATOR_UNDERPOWERED_PER_SEED")
+    if retained_cov > 0.5:
+        reader_safety_flags.append("MODERATOR_RETAINED_N_HETEROGENEOUS")
+
+    report["moderator_reader_safety"] = {
+        "moderator_retained_n_per_seed": retained_n_per_seed,
+        "moderator_retained_n_total": sum(retained_values),
+        "moderator_retained_n_mean": retained_mean,
+        "moderator_retained_n_cov": retained_cov,
+        "moderator_mean_abs_gap_per_seed": mean_abs_gap_per_seed,
+        "flags": reader_safety_flags,
+        "underpowered_threshold_per_seed": 500,
+        "heterogeneous_cov_threshold": 0.5,
+        "note": (
+            "Reader-safety signals per eleventh §2d. Flags do NOT invalidate the primary "
+            "metric; they signal reduced-weight interpretation of the §3e moderator only."
+        ),
+    }
+
     # STRICT ratification pooled summary.
     strict_seeds = [s for s in seed_pool
                     if report["per_seed"][s]["ratification"]["bucket"] == "STRICT"]
@@ -635,20 +1133,67 @@ if __name__ == "__main__":
                     help="Comma-separated list of seeds (e.g. '100,101,102,...')")
     ap.add_argument("--report-path", default=None,
                     help="Optional output JSON path (default: auto-named in output-dir)")
+    ap.add_argument("--manifest-path", default=None,
+                    help="Phase 3-4 output manifest JSON (defaults to script-dir/"
+                         + PHASE_3_4_MANIFEST_FILENAME + ")")
+    ap.add_argument("--sha-lock-path", default=None,
+                    help="phase_5_analysis.py SHA lock JSON (defaults to script-dir/"
+                         + PHASE_5_SHA_LOCK_FILENAME + ")")
+    ap.add_argument("--allow-sha-mismatch", action="store_true",
+                    help="Debug/dev only: proceed even if script SHA doesn't match the "
+                         "pre-registered lock. Output will carry sha_match=False and is "
+                         "VOID under eleventh §4d — DO NOT use for pre-reg Phase 5 run.")
     args = ap.parse_args()
 
+    # §4b runtime verification: assert phase_5_analysis.py SHA matches locked value
+    # BEFORE running primary-metric computation. Mismatch → abort unless --allow-sha-mismatch.
+    _script_path = pathlib.Path(__file__).resolve()
+    _lock_path = pathlib.Path(args.sha_lock_path) if args.sha_lock_path \
+                 else _script_path.parent / PHASE_5_SHA_LOCK_FILENAME
+    _sha = verify_self_sha(_script_path, _lock_path)
+    if _sha["lock_file_present"]:
+        if _sha["match"] is False:
+            msg = (f"SHA mismatch — script modified since pre-reg lock.\n"
+                   f"  locked:   {_sha['locked']}\n"
+                   f"  observed: {_sha['observed']}\n"
+                   f"  lock file: {_lock_path}\n"
+                   f"Pre-reg §4d: output is VOID under this condition.")
+            if args.allow_sha_mismatch:
+                print(f"WARNING: {msg}\nProceeding under --allow-sha-mismatch; "
+                      f"output is NOT a pre-reg Phase 5 result.", file=sys.stderr)
+            else:
+                print(msg, file=sys.stderr)
+                sys.exit(2)
+    else:
+        print(f"NOTE: SHA lock file not present at {_lock_path}. "
+              f"Running without pre-reg SHA assertion; output will carry "
+              f"phase_5_analysis_sha_match=null and is pre-reg-incomplete under §4d.",
+              file=sys.stderr)
+
     seed_pool = [int(x) for x in args.seed_pool.split(",")]
-    rpt = analyze_phase_1_output(args.output_dir, seed_pool, report_path=args.report_path)
+    rpt = analyze_phase_1_output(
+        args.output_dir, seed_pool,
+        report_path=args.report_path,
+        manifest_path=args.manifest_path,
+        sha_lock_path=args.sha_lock_path,
+        script_path=_script_path,
+    )
 
     print(f"Phase 5 analysis complete. Report: {args.report_path or 'auto-named in output-dir'}")
     print(f"  seeds in pool: {len(seed_pool)}")
     print(f"  declared (coherence > {MIN_COHERENT_STEPS_FOR_DECLARATION}): {len(rpt['declared_seeds'])}")
     print(f"  reactive-dose-valid: {len(rpt['reactive_valid_seeds'])}")
     print(f"  strict fails: {len(rpt['strict_ratification']['strict_fail_seeds'])}")
-    pm = rpt["primary_metric"]["reactive_valid_only"]
-    if pm.get("n_seeds", 0) > 0:
-        hv = pm["hot_minus_yoked"]
-        hr = pm["hot_minus_reactive"]
-        print(f"  hot−yoked:    mean={hv['mean']:+.2f}  CI95={hv['ci95']}  verdict={hv['verdict']}")
-        print(f"  hot−reactive: mean={hr['mean']:+.2f}  CI95={hr['ci95']}  verdict={hr['verdict']}  TOST={hr['tost_equivalence_at_threshold']}")
-        print(f"  architecture_claim: {pm['intersection_union']['architecture_claim_supported']}")
+    print(f"  SHA match: {rpt['phase_5_analysis_sha_match']}  "
+          f"manifest verify: {rpt['phase_3_4_manifest_verification']}")
+    if "architecture_claim_verdict" in rpt and rpt["architecture_claim_verdict"] != "INSUFFICIENT_DATA":
+        print(f"  hv:  mean={rpt['hv_mean']:+.2f}  "
+              f"CI95={rpt['hv_ci_95']}  verdict={rpt['hv_verdict']}  "
+              f"paired_SD={rpt['paired_sd_hv']:.2f}  MDE={rpt['mde_observed_at_paired_sd_hv']:.2f}")
+        print(f"  hr:  mean={rpt['hr_mean']:+.2f}  "
+              f"CI95={rpt['hr_ci_95']}  verdict={rpt['hr_verdict']}  "
+              f"paired_SD={rpt['paired_sd_hr']:.2f}  MDE={rpt['mde_observed_at_paired_sd_hr']:.2f}")
+        print(f"  architecture_claim_verdict: {rpt['architecture_claim_verdict']}  "
+              f"feedback_matters_subcase={rpt['architecture_claim_feedback_matters_specific_subcase']}")
+    else:
+        print(f"  architecture_claim_verdict: INSUFFICIENT_DATA")

@@ -1,0 +1,15 @@
+{
+  "schema_version": "phase_5_analysis_sha_lock_v1_2026-10-15",
+  "created_utc": "2026-10-16T01:30:00Z",
+  "created_utc_note": "SHA lock JSON was written at 19:30 Denver local time (MDT, UTC-6) on 2026-10-15; recorded here as UTC. Commit timestamp (authoritative) is captured by git itself.",
+  "created_by": "Annie-034 (Cell 66 FFF, first waking post full-distill)",
+  "script_path_in_repo": "pre-registrations/crack-seed/simulation/phase_5_analysis.py",
+  "script_path_local": "Seeds/The Crack/phase_5_analysis.py",
+  "sha256_lf": "b93fe5c2cad7ef466e8c7b56105db3d556b6ba4a6ffafb457c4a16a8f860a89d",
+  "sha256_raw_bytes": "b93fe5c2cad7ef466e8c7b56105db3d556b6ba4a6ffafb457c4a16a8f860a89d",
+  "size_bytes": 54104,
+  "line_ending_convention": "LF only",
+  "pre_reg_reference": "eleventh addendum §4 (phase_5_analysis.py SHA lock) + §4b runtime verification + §4c SHA record + §4d output JSON fields",
+  "regime_sha_v37_4_cross_reference": "77b0097d95d61b8d5430b870a45889477e5006fc5443600aa6233456e8387f87",
+  "note": "This file is the authoritative source for the pre-registered Phase-5-launch SHA of phase_5_analysis.py. phase_5_analysis.py reads this file at __main__ entry; mismatch between locked and observed script SHA aborts the analysis with exit 2 (eleventh §4b runtime verification). Expected to be committed to GitHub alongside phase_5_analysis.py as Commit 1 of the two-commit sequence per eleventh §4b Option B."
+}
