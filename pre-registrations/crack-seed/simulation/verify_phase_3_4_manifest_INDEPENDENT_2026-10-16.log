@@ -1,0 +1,27 @@
+========================================================================
+Independent re-verification of Phase 3-4 output manifest
+Manifest: C:\Users\14132\iCloudDrive\Seeds\The Crack\phase_3_4_output_manifest_2026-10-15.json
+Resolution: paths relative to CRACK_DIR = C:\Users\14132\iCloudDrive\Seeds\The Crack
+Started: 2026-10-16T11:25:20Z
+========================================================================
+Total pickles in manifest: 254
+Expected: 254 (40 yoked + 40 reactive + 40 matched + 134 no_obs)
+
+------------------------------------------------------------------------
+RESULTS
+------------------------------------------------------------------------
+SHA match (clean):     254
+SHA mismatch (corrupt): 0
+File missing:          0
+
+========================================================================
+VERDICT: INTEGRITY CLEAN. All 254 manifest entries match on-disk SHA.
+
+Note: phase_5_analysis.py top-level verify_phase_3_4_manifest()
+field FAIL_WITH_LIST was due to a path-resolution bug (joining
+output_dir with CRACK-DIR-relative manifest paths). The loader-side
+per-pickle SHA check used a candidate-list strategy and resolved
+correctly, so the actual Phase 5 compute ran against SHA-verified
+inputs. The top-level field is misleading; this independent script
+establishes the correct result for the audit record.
+========================================================================
