@@ -83,17 +83,24 @@ The Stage 1 calibration series produced four addenda before Stage 2. This reposi
 
 ## Commit chain on this repository
 
-```
-3aea325 → 7556b95 → 7436a2f → 86b7eee → f10f37e → 0aad4cd
-       → 286002f → f4f66ac → eabdbf2 → 481c90c → 2d6497d
-       → 724942d → 2830a0e
-```
+Each row is one commit, in chronological order:
 
-- `3aea325`-`86b7eee`: addenda 5-8
-- `f10f37e`: simulation code first commit at Task D state
-- `0aad4cd`-`724942d`: addenda 9-11, Gate 1 PASS, Phase 2 trace manifest, locked `phase_5_analysis.py` + lock JSON, addendum 11, Phase 3-4 output manifest
-- `eabdbf2`: tenth addendum
-- `2830a0e`: twelfth addendum + Phase 5 output JSON + independent manifest re-verify (arc close)
+| Commit | Date | What landed |
+|---|---|---|
+| `3aea325` | 2026-10-05 | Fifth addendum (Stage 2 pre-reg locked) |
+| `7556b95` | 2026-10-08 | Sixth addendum (Gate 1 target seed lock) |
+| `7436a2f` | 2026-10-08 | Seventh addendum (D_caution inert; LEAK relocation) |
+| `86b7eee` | 2026-10-09 | Eighth addendum (five-arm design, reactive arm, single-channel claim) |
+| `f10f37e` | 2026-10-13 | Simulation code first commit (v37.4 at Task D state) |
+| `0aad4cd` | 2026-10-13 | Ninth addendum (Phase-1-launch SHA `77b0097d...` locked) |
+| `286002f` | 2026-10-14 | Gate 1 PASS evidence |
+| `f4f66ac` | 2026-10-15 | Phase 2 trace manifest |
+| `eabdbf2` | 2026-10-15 | Tenth addendum (f_zero rule, crash policy, verify correction) |
+| `481c90c` | 2026-10-15 | Commit 1 of two: locked `phase_5_analysis.py` + SHA lock JSON |
+| `2d6497d` | 2026-10-15 | Commit 2 of two: eleventh addendum with §4c SHA bake |
+| `724942d` | 2026-10-15 | Commit 3: Phase 3-4 output manifest (254 pickles) |
+| `2830a0e` | 2026-10-16 | Commit 4 (arc close): twelfth addendum + Phase 5 output JSON + independent manifest re-verify |
+| `4ede3de` | 2026-10-16 | This README refresh + label disambiguations |
 
 ---
 
